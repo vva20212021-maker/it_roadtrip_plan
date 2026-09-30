@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Italy Self-Drive Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #8B4513;
+            --secondary: #D4A574;
+            --accent: #E8D5C4;
+            --danger: #C41E3A;
+            --success: #2E7D32;
+            --warning: #F57C00;
+            --info: #0288D1;
+            --dark: #2C3E50;
+            --light: #ECF0F1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* ===== 語言切換按鈕 ===== */
+        .language-switcher {
+            position: fixed;
+            top: 60px;
+            right: 12px;
+            z-index: 101;
+            display: flex;
+            gap: 4px;
+            background: white;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .lang-btn {
+            padding: 6px 10px;
+            border: none;
+            background: var(--light);
+            color: var(--dark);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ===== 頂部導航 ===== */
+        .header {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            padding: 16px 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-date {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* ===== 標籤頁導航 ===== */
+        .tabs {
+            background: white;
+            border-bottom: 2px solid var(--secondary);
+            padding: 0;
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px 8px;
+            border: none;
+            background: white;
+            color: var(--dark);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-button:hover {
+            background: var(--accent);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: var(--light);
+        }
+
+        /* ===== 內容區域 ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ===== 日期標題 ===== */
+        .day-header {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(139,69,19,0.2);
+        }
+
+        .day-header h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .day-header p {
+            font-size: 13px;
+            opacity: 0.95;
+        }
+
+        /* ===== 天氣卡片 ===== */
+        .weather-card {
+            background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #0288D1;
+        }
+
+        .weather-info {
+            flex: 1;
+        }
+
+        .weather-info h3 {
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .weather-temp {
+            font-size: 24px;
+            font-weight: bold;
+            color: #01579B;
+        }
+
+        .weather-desc {
+            font-size: 12px;
+            color: #0277BD;
+            margin-top: 4px;
+        }
+
+        .weather-icon {
+            font-size: 40px;
+            text-align: center;
+        }
+
+        /* ===== 行程卡片 ===== */
+        .activity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .activity-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .activity-time {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary);
+            background: var(--accent);
+            padding: 4px 8px;
+            border-radius: 6px;
+            min-width: 65px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .activity-title {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .category-badge {
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .badge-drive {
+            background: #FFE0B2;
+            color: #E65100;
+        }
+
+        .badge-food {
+            background: #F8BBD0;
+            color: #880E4F;
+        }
+
+        .badge-attraction {
+            background: #C8E6C9;
+            color: #1B5E20;
+        }
+
+        .badge-hotel {
+            background: #B3E5FC;
+            color: #01579B;
+        }
+
+        /* ===== 景點圖片 ===== */
+        .attraction-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #ddd 0%, #eee 100%);
+            border-radius: 8px;
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            overflow: hidden;
+        }
+
+        .attraction-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ===== 位置信息 ===== */
+        .location-info {
+            background: var(--light);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: var(--dark);
+        }
+
+        .location-info strong {
+            color: var(--primary);
+        }
+
+        .location-info i {
+            color: var(--primary);
+            margin-right: 6px;
+        }
+
+        /* ===== 按鈕組 ===== */
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 90px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-nav {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-nav:active {
+            background: #0277BD;
+            transform: scale(0.98);
+        }
+
+        .btn-phone {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-phone:active {
+            background: #1B5E20;
+            transform: scale(0.98);
+        }
+
+        .btn-web {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-web:active {
+            background: #A68564;
+            transform: scale(0.98);
+        }
+
+        /* ===== 餐廳信息 ===== */
+        .restaurant-info {
+            background: #FCE4EC;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            border-left: 4px solid var(--danger);
+        }
+
+        .restaurant-name {
+            font-weight: 600;
+            color: var(--danger);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .menu-item {
+            padding: 6px 0;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--dark);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 0 2px;
+        }
+
+        .tag-must-try {
+            background: #FFE082;
+            color: #F57F17;
+        }
+
+        .tag-signature {
+            background: #A5D6A7;
+            color: #1B5E20;
+        }
+
+        .tag-booking {
+            background: #B3E5FC;
+            color: #01579B;
+        }
+
+        .tag-warning {
+            background: #FFCCBC;
+            color: #E65100;
+        }
+
+        /* ===== 重要提示 ===== */
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 12px;
+            border-left: 4px solid;
+            display: flex;
+            gap: 8px;
+        }
+
+        .alert-warning {
+            background: #FFF3E0;
+            border-left-color: var(--warning);
+            color: #E65100;
+        }
+
+        .alert-danger {
+            background: #FFEBEE;
+            border-left-color: var(--danger);
+            color: #C41E3A;
+        }
+
+        .alert-info {
+            background: #E3F2FD;
+            border-left-color: var(--info);
+            color: #0277BD;
+        }
+
+        /* ===== 信息塊 ===== */
+        .info-box {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .info-box h3 {
+            color: var(--primary);
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light);
+            font-size: 13px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--dark);
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        /* ===== 住宿卡片 ===== */
+        .hotel-card {
+            background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--info);
+            box-shadow: 0 4px 12px rgba(2,136,209,0.15);
+        }
+
+        .hotel-card h3 {
+            color: var(--dark);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .hotel-detail {
+            font-size: 13px;
+            margin: 8px 0;
+            display: flex;
+            align-items: start;
+            gap: 8px;
+        }
+
+        .hotel-detail i {
+            color: var(--info);
+            min-width: 20px;
+        }
+
+        /* ===== 航班卡片 ===== */
+        .flight-card {
+            background: linear-gradient(135deg, #E8EAF6 0%, #C5CAE9 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #3F51B5;
+            box-shadow: 0 4px 12px rgba(63,81,181,0.15);
+        }
+
+        /* ===== 緊急聯絡 ===== */
+        .emergency-box {
+            background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--danger);
+        }
+
+        .emergency-box h3 {
+            color: var(--danger);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .emergency-btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .emergency-btn:active {
+            background: #A00E2B;
+            transform: scale(0.98);
+        }
+
+        /* ===== 匯率計算機 ===== */
+        .calculator {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .calculator h3 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .calc-group {
+            margin-bottom: 12px;
+        }
+
+        .calc-group label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .calc-input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calc-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .calc-result {
+            background: var(--light);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+
+        /* ===== 記帳功能 ===== */
+        .expense-tracker {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .expense-tracker h3 {
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .expense-input {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .expense-input input,
+        .expense-input select {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .expense-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .expense-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .expense-item {
+            background: var(--light);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .expense-amount {
+            background: var(--warning);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .expense-total {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* ===== 底部導航 ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--accent);
+            display: flex;
+            justify-content: space-around;
+            z-index: 100;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: white;
+            font-size: 11px;
+            font-weight: 500;
+            color: #999;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: var(--accent);
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* ===== 響應式設計 ===== */
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .language-switcher {
+                top: 54px;
+                right: 8px;
+            }
+
+            .tab-button {
+                font-size: 11px;
+                padding: 10px 6px;
+                min-width: 60px;
+            }
+
+            .activity-card {
+                padding: 12px;
+            }
+
+            .btn {
+                font-size: 11px;
+                padding: 8px 10px;
+                min-width: 80px;
+            }
+
+            .attraction-image {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 頂部導航 -->
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1><i class="fas fa-map-location-dot"></i> <span lang-en="Italy Self-Drive" lang-zh-hk="意大利自駕" lang-zh-cn="意大利自驾">意大利自駕</span></h1>
+                <p class="header-date">🗓️ <span lang-en="Oct 9-11, 2024" lang-zh-hk="2024年10月9-11日" lang-zh-cn="2024年10月9-11日">2024年10月9-11日</span></p>
+            </div>
+            <div style="text-align: right; font-size: 24px;">🇮🇹</div>
+        </div>
+    </div>
+
+    <!-- 語言切換 -->
+    <div class="language-switcher">
+        <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
+        <button class="lang-btn" onclick="switchLanguage('zh-hk')">繁</button>
+        <button class="lang-btn" onclick="switchLanguage('zh-cn')">簡</button>
+    </div>
+
+    <!-- 標籤頁導航 -->
+    <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('flight')">
+            <i class="fas fa-plane"></i> <span lang-en="Flight" lang-zh-hk="航班" lang-zh-cn="航班">航班</span>
+        </button>
+        <button class="tab-button" onclick="switchTab('day1')">
+            <i class="fas fa-calendar-day"></i> Day 1
+        </button>
+        <button class="tab-button" onclick="switchTab('day2')">
+            <i class="fas fa-calendar-day"></i> Day 2
+        </button>
+        <button class="tab-button" onclick="switchTab('day3')">
+            <i class="fas fa-calendar-day"></i> Day 3
+        </button>
+        <button class="tab-button" onclick="switchTab('info')">
+            <i class="fas fa-circle-info"></i> <span lang-en="Info" lang-zh-hk="資訊" lang-zh-cn="资讯">資訊</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- ===== 航班資訊 ===== -->
+        <div id="flight" class="tab-content active">
+            <div class="flight-card">
+                <h3><i class="fas fa-plane"></i> <span lang-en="Flight Information" lang-zh-hk="航班資訊" lang-zh-cn="航班资讯">航班資訊</span></h3>
+                
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-plane-departure"></i> <span lang-en="Outbound" lang-zh-hk="去程" lang-zh-cn="去程">去程</span></span>
+                    <span class="info-value" id="flight-out">HK → Milan</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><span lang-en="Flight" lang-zh-hk="航班號" lang-zh-cn="航班号">航班號</span></span>
+                    <span class="info-value">✏️ <span lang-en="Add flight" lang-zh-hk="添加航班" lang-zh-cn="添加航班">添加航班</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><span lang-en="Departure" lang-zh-hk="出發時間" lang-zh-cn="出发时间">出發時間</span></span>
+                    <span class="info-value">
+                        <input type="datetime-local" id="depTime" style="padding: 4px; border: 1px solid var(--accent); border-radius: 4px; font-size: 12px;">
+                    </span>
+                </div>
+
+                <hr style="margin: 12px 0; border: none; border-top: 1px solid var(--accent);">
+
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-plane-arrival"></i> <span lang-en="Return" lang-zh-hk="回程" lang-zh-cn="回程">回程</span></span>
+                    <span class="info-value" id="flight-return">Milan → HK</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><span lang-en="Flight" lang-zh-hk="航班號" lang-zh-cn="航班号">航班號</span></span>
+                    <span class="info-value">✏️ <span lang-en="Add flight" lang-zh-hk="添加航班" lang-zh-cn="添加航班">添加航班</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><span lang-en="Departure" lang-zh-hk="出發時間" lang-zh-cn="出发时间">出發時間</span></span>
+                    <span class="info-value">
+                        <input type="datetime-local" id="retTime" style="padding: 4px; border: 1px solid var(--accent); border-radius: 4px; font-size: 12px;">
+                    </span>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <span lang-en="Tip: Save your flight details here for quick reference during your trip." lang-zh-hk="提示：在此保存你的航班詳情，方便旅途查看。" lang-zh-cn="提示：在此保存你的航班详情，方便旅途查看。">提示：在此保存你的航班詳情，方便旅途查看。</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DAY 1 ===== -->
+        <div id="day1" class="tab-content">
+            <div class="day-header">
+                <h2>📅 Day 1 - <span lang-en="Oct 9 (Wednesday)" lang-zh-hk="10月9日 (週三)" lang-zh-cn="10月9日 (周三)">10月9日 (週三)</span></h2>
+                <p>🚗 <span lang-en="Milan → Florence → Montepulciano | ~300km / 3hr 15min" lang-zh-hk="米蘭 → 佛羅倫斯 → Montepulciano | 全程 ~300km / 3小時 15分" lang-zh-cn="米兰 → 佛罗伦斯 → Montepulciano | 全程 ~300km / 3小时 15分">米蘭 → 佛羅倫斯 → Montepulciano | 全程 ~300km / 3小時 15分</span></p>
+            </div>
+
+            <!-- 天氣 -->
+            <div class="weather-card">
+                <div class="weather-info">
+                    <h3>Florence - <span lang-en="Oct 9" lang-zh-hk="10月9日" lang-zh-cn="10月9日">10月9日</span></h3>
+                    <div class="weather-temp">18°C</div>
+                    <div class="weather-desc">☀️ <span lang-en="Clear • Humidity 65%" lang-zh-hk="晴朗 • 濕度 65%" lang-zh-cn="晴朗 • 湿度 65%">晴朗 • 濕度 65%</span></div>
+                </div>
+                <div class="weather-icon">☀️</div>
+            </div>
+
+            <!-- 米蘭出發 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">10:00</div>
+                    <div class="activity-title">🚗 <span lang-en="Depart Milan" lang-zh-hk="米蘭出發" lang-zh-cn="米兰出发">米蘭出發</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Via Gottlieb Wilhelm Daimler 14, Milano</strong><br>
+                    <small><span lang-en="Hotel Departure" lang-zh-hk="酒店出發地點" lang-zh-cn="酒店出发地点">酒店出發地點</span></small>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong><span lang-en="Route:" lang-zh-hk="路線：" lang-zh-cn="路线：">路線：</span></strong>A1 <span lang-en="Highway (Bologna direction) → Firenze Sud exit" lang-zh-hk="高速 (Bologna 方向) → Firenze Sud 出口" lang-zh-cn="高速 (Bologna 方向) → Firenze Sud 出口">高速 (Bologna 方向) → Firenze Sud 出口</span><br>
+                        <strong><span lang-en="Distance:" lang-zh-hk="距離：" lang-zh-cn="距离：">距離：</span></strong>約 300km | <strong><span lang-en="Time:" lang-zh-hk="時間：" lang-zh-cn="时间：">時間：</span></strong>3 <span lang-en="hours" lang-zh-hk="小時" lang-zh-cn="小时">小時</span> 15 <span lang-en="minutes" lang-zh-hk="分" lang-zh-cn="分">分</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/milan-hotel" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 泊車 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">13:15</div>
+                    <div class="activity-title">🅿️ <span lang-en="Arrive Florence - Parking" lang-zh-hk="抵達佛羅倫斯 - 外圍泊車" lang-zh-cn="抵达佛罗伦斯 - 外围泊车">抵達佛羅倫斯 - 外圍泊車</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Parcheggio Sant'Ambrogio</strong><br>
+                    Piazza Ghiberti, Firenze
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>⚠️ ZTL <span lang-en="Restricted Traffic Zone - Important!" lang-zh-hk="限行區 - 重要提示！" lang-zh-cn="限行区 - 重要提示！">限行區 - 重要提示！</span></strong><br>
+                        <span lang-en="Monday-Friday: 7:30am-8:00pm" lang-zh-hk="週一至五：07:30 - 20:00" lang-zh-cn="周一至五：07:30 - 20:00">週一至五：07:30 - 20:00</span><br>
+                        <span lang-en="Saturday: 7:30am-4:00pm" lang-zh-hk="週六：07:30 - 16:00" lang-zh-cn="周六：07:30 - 16:00">週六：07:30 - 16:00</span><br>
+                        <strong><span lang-en="Fine for entering: €80-€335" lang-zh-hk="誤入罰款：€80 - €335" lang-zh-cn="误入罚款：€80 - €335">誤入罰款：€80 - €335</span></strong><br>
+                        <span lang-en="Parking: €2/hour | Outside ZTL" lang-zh-hk="泊車費：€2/小時 | ZTL 限行區外" lang-zh-cn="泊车费：€2/小时 | ZTL 限行区外">泊車費：€2/小時 | ZTL 限行區外</span>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Park and walk 10-15 min to old city center" lang-zh-hk="泊好車後步行 10-15 分鐘入老城" lang-zh-cn="泊好车后步行 10-15 分钟入老城">泊好車後步行 10-15 分鐘入老城</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/ParcheggioSantAmbrogio-Firenze" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 午餐 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">13:30</div>
+                    <div class="activity-title">🍽️ <span lang-en="Lunch: Braceria Auditore" lang-zh-hk="午餐：Braceria Auditore" lang-zh-cn="午餐：Braceria Auditore">午餐：Braceria Auditore</span></div>
+                    <span class="category-badge badge-food"><span lang-en="Food" lang-zh-hk="美食" lang-zh-cn="美食">美食</span></span>
+                </div>
+                <div class="attraction-image">🍷</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Piazza del Grano 13R, Firenze</strong><br>
+                    <i class="fas fa-phone"></i> +39 055 217 3200
+                </div>
+                <div class="restaurant-info">
+                    <div class="restaurant-name">📌 <span lang-en="Reservation 13:30 | 3 min from Uffizi" lang-zh-hk="已訂位 13:30 | 烏菲茲美術館旁 3 分鐘" lang-zh-cn="已订位 13:30 | 乌菲兹美术馆旁 3 分钟">已訂位 13:30 | 烏菲茲美術館旁 3 分鐘</span></div>
+                    <strong style="color: #C41E3A;">🌟 <span lang-en="Must-Try Menu:" lang-zh-hk="必點菜單：" lang-zh-cn="必点菜单：">必點菜單：</span></strong>
+                    <div class="menu-item">
+                        • <span class="tag tag-signature">Bistecca alla Fiorentina</span> T<span lang-en="bone steak" lang-zh-hk="骨扒" lang-zh-cn="骨扒">骨扒</span> <span class="tag tag-must-try"><span lang-en="Signature" lang-zh-hk="招牌" lang-zh-cn="招牌">招牌</span></span><br>
+                        • <span class="tag tag-signature">Peposo</span> <span lang-en="Red wine braised beef" lang-zh-hk="紅酒燉牛膝" lang-zh-cn="红酒炖牛膝">紅酒燉牛膝</span> €25<br>
+                        • <span class="tag tag-signature">Pici all'aglione</span> <span lang-en="Garlic handmade noodles" lang-zh-hk="大蒜手工麵" lang-zh-cn="大蒜手工面">大蒜手工麵</span> €13<br>
+                        • <span class="tag tag-signature">Chianti Classico</span> <span lang-en="Wine" lang-zh-hk="餐酒" lang-zh-cn="餐酒">餐酒</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/BraceriaAuditore-Firenze" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                    <a href="tel:+390552173200" class="btn btn-phone">
+                        <i class="fas fa-phone"></i> <span lang-en="Call" lang-zh-hk="電話" lang-zh-cn="电话">電話</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 烏菲茲美術館 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">15:30</div>
+                    <div class="activity-title">🎨 <span lang-en="Uffizi Gallery" lang-zh-hk="烏菲茲美術館" lang-zh-cn="乌菲兹美术馆">烏菲茲美術館</span></div>
+                    <span class="category-badge badge-attraction"><span lang-en="Attraction" lang-zh-hk="景點" lang-zh-cn="景点">景點</span></span>
+                </div>
+                <div class="attraction-image">🎭</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Piazzale degli Uffizi 6, Firenze</strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong><span lang-en="Key Artworks:" lang-zh-hk="重點館藏：" lang-zh-cn="重点馆藏：">重點館藏：</span></strong><br>
+                    • <strong><span lang-en="Botticelli's Birth of Venus & Spring" lang-zh-hk="波提切利《維納斯的誕生》《春》" lang-zh-cn="波提切利《维纳斯的诞生》《春》">波提切利《維納斯的誕生》《春》</span></strong><br>
+                    • <strong><span lang-en="Leonardo's Annunciation" lang-zh-hk="達文西《天使報喜》" lang-zh-cn="达文西《天使报喜》">達文西《天使報喜》</span></strong><br>
+                    • <strong><span lang-en="Michelangelo's Holy Family" lang-zh-hk="米開朗基羅《聖家族》" lang-zh-cn="米开朗基罗《圣家族》">米開朗基羅《聖家族》</span></strong><br>
+                    • <strong><span lang-en="Raphael's Madonna of the Goldfinch" lang-zh-hk="拉斐爾《金翅雀聖母》" lang-zh-cn="拉斐尔《金翅雀圣母》">拉斐爾《金翅雀聖母》</span></strong>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    💡 <span lang-en="Book tickets online in advance to skip long queues (typically 1-2 hours)" lang-zh-hk="建議預先網上購票免排隊 (通常排隊 1-2 小時)" lang-zh-cn="建议预先网上购票免排队 (通常排队 1-2 小时)">建議預先網上購票免排隊 (通常排隊 1-2 小時)</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/UffiziGallery-Firenze" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                    <a href="https://www.uffizi.it" class="btn btn-web" target="_blank">
+                        <i class="fas fa-globe"></i> <span lang-en="Book Tickets" lang-zh-hk="購票" lang-zh-cn="购票">購票</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 前往Montepulciano -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">17:45</div>
+                    <div class="activity-title">🚗 <span lang-en="Pick up car → Montepulciano" lang-zh-hk="取車 → Montepulciano" lang-zh-cn="取车 → Montepulciano">取車 → Montepulciano</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong><span lang-en="Route:" lang-zh-hk="路線：" lang-zh-cn="路线：">路線：</span></strong>Florence → A1 (Roma <span lang-en="direction" lang-zh-hk="方向" lang-zh-cn="方向">方向</span>) → Valdichiana <span lang-en="exit" lang-zh-hk="出口" lang-zh-cn="出口">出口</span><br>
+                        <strong><span lang-en="Distance:" lang-zh-hk="距離：" lang-zh-cn="距离：">距離：</span></strong>約 130km | <strong><span lang-en="Time:" lang-zh-hk="時間：" lang-zh-cn="时间：">時間：</span></strong>1 <span lang-en="hour" lang-zh-hk="小時" lang-zh-cn="小时">小時</span> 30 <span lang-en="minutes" lang-zh-hk="分" lang-zh-cn="分">分</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/A1-Valdichiana" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 酒店入住 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">19:15</div>
+                    <div class="activity-title">🏨 <span lang-en="Hotel Panoramic Check-in" lang-zh-hk="Hotel Panoramic 入住" lang-zh-cn="Hotel Panoramic 入住">Hotel Panoramic 入住</span></div>
+                    <span class="category-badge badge-hotel"><span lang-en="Hotel" lang-zh-hk="住宿" lang-zh-cn="住宿">住宿</span></span>
+                </div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Via San Bartolomeo 2, Montepulciano</strong><br>
+                    GPS: 43.076325, 11.791854
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        ✅ <strong><span lang-en="Check-in:" lang-zh-hk="Check-in：" lang-zh-cn="Check-in：">Check-in：</span></strong><span lang-en="From 3:00 PM" lang-zh-hk="15:00 後" lang-zh-cn="15:00 后">15:00 後</span><br>
+                        ✅ <strong><span lang-en="Facilities:" lang-zh-hk="設施：" lang-zh-cn="设施：">設施：</span></strong><span lang-en="Swimming pool, Tennis court, Free breakfast" lang-zh-hk="游泳池、網球場、免費早餐" lang-zh-cn="游泳池、网球场、免费早餐">游泳池、網球場、免費早餐</span><br>
+                        ✅ <strong><span lang-en="Parking:" lang-zh-hk="泊車：" lang-zh-cn="泊车：">泊車：</span></strong><span lang-en="Free" lang-zh-hk="免費" lang-zh-cn="免费">免費</span><br>
+                        ✅ <strong><span lang-en="Stay:" lang-zh-hk="連住：" lang-zh-cn="连住：">連住：</span></strong>3 <span lang-en="nights" lang-zh-hk="晚" lang-zh-cn="晚">晚</span> (Oct 9-12)
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/hotelpanoramic-montepulciano" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 晚餐 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">20:00</div>
+                    <div class="activity-title">🍕 <span lang-en="Dinner: Lieviti Pizzeria" lang-zh-hk="晚餐：Lieviti Pizzeria" lang-zh-cn="晚餐：Lieviti Pizzeria">晚餐：Lieviti Pizzeria</span></div>
+                    <span class="category-badge badge-food"><span lang-en="Food" lang-zh-hk="美食" lang-zh-cn="美食">美食</span></span>
+                </div>
+                <div class="attraction-image">🍕</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Via di Cagnano 33, Montepulciano</strong><br>
+                    <i class="fas fa-phone"></i> +39 0578 440240
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>⚠️ ZTL <span lang-en="Historic center restricted - Recommend taxi/walk" lang-zh-hk="限行區 - 建議搭士或步行" lang-zh-cn="限行区 - 建议打车或步行">限行區 - 建議搭士或步行</span></strong>
+                </div>
+                <div class="restaurant-info">
+                    <div class="restaurant-name">📌 <span lang-en="Reservation 20:00 | Closed Mondays" lang-zh-hk="已訂位 20:00 | 週一休息" lang-zh-cn="已订位 20:00 | 周一休息">已訂位 20:00 | 週一休息</span></div>
+                    <strong style="color: #C41E3A;">🌟 <span lang-en="Must-Try Menu:" lang-zh-hk="必點菜單：" lang-zh-cn="必点菜单：">必點菜單：</span></strong>
+                    <div class="menu-item">
+                        • <span class="tag tag-must-try">Pizza Sole Mio</span> <span class="tag tag-signature"><span lang-en="Best in shop" lang-zh-hk="全店最佳" lang-zh-cn="全店最佳">全店最佳</span></span><br>
+                        • <span class="tag tag-signature">Pizza Con Zucchine</span><br>
+                        • <span class="tag tag-signature">Fritti</span> <span lang-en="Fried platter" lang-zh-hk="炸物拼盤" lang-zh-cn="炸物拼盘">炸物拼盤</span><br>
+                        • <span class="tag tag-signature"><span lang-en="Craft beer" lang-zh-hk="手工精釀啤酒" lang-zh-cn="手工精酿啤酒">手工精釀啤酒</span></span> <span class="tag tag-must-try"><span lang-en="Signature" lang-zh-hk="招牌" lang-zh-cn="招牌">招牌</span></span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/LievitiMontepulciano" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                    <a href="tel:+390578440240" class="btn btn-phone">
+                        <i class="fas fa-phone"></i> <span lang-en="Call" lang-zh-hk="電話" lang-zh-cn="电话">電話</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DAY 2 ===== -->
+        <div id="day2" class="tab-content">
+            <div class="day-header">
+                <h2>📅 Day 2 - <span lang-en="Oct 10 (Thursday)" lang-zh-hk="10月10日 (週四)" lang-zh-cn="10月10日 (周四)">10月10日 (週四)</span></h2>
+                <p>🚗 <span lang-en="Montepulciano → Winery → Civita → Orvieto | ~120km" lang-zh-hk="Montepulciano → 酒莊 → Civita → Orvieto | 全程 ~120km" lang-zh-cn="Montepulciano → 酒庄 → Civita → Orvieto | 全程 ~120km">Montepulciano → 酒莊 → Civita → Orvieto | 全程 ~120km</span></p>
+            </div>
+
+            <!-- 天氣 -->
+            <div class="weather-card">
+                <div class="weather-info">
+                    <h3><span lang-en="Montepulciano / Orvieto - Oct 10" lang-zh-hk="Montepulciano / Orvieto - 10月10日" lang-zh-cn="Montepulciano / Orvieto - 10月10日">Montepulciano / Orvieto - 10月10日</span></h3>
+                    <div class="weather-temp">19°C</div>
+                    <div class="weather-desc">☀️ <span lang-en="Clear • Humidity 60%" lang-zh-hk="晴朗 • 濕度 60%" lang-zh-cn="晴朗 • 湿度 60%">晴朗 • 濕度 60%</span></div>
+                </div>
+                <div class="weather-icon">☀️</div>
+            </div>
+
+            <!-- 早餐與小鎮散步 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">09:30</div>
+                    <div class="activity-title">🍳 <span lang-en="Breakfast + Town Walk" lang-zh-hk="早餐 + Montepulciano 小鎮散步" lang-zh-cn="早餐 + Montepulciano 小镇散步">早餐 + Montepulciano 小鎮散步</span></div>
+                    <span class="category-badge badge-food"><span lang-en="Food" lang-zh-hk="美食" lang-zh-cn="美食">美食</span></span>
+                </div>
+                <div class="attraction-image">☕</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong><span lang-en="Main Street (Corso) • Piazza Grande" lang-zh-hk="Corso 主街 • Piazza Grande" lang-zh-cn="Corso 主街 • Piazza Grande">Corso 主街 • Piazza Grande</span></strong><br>
+                    ☕ Lalma Cafe & Tea Room
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong><span lang-en="Must-See Attractions:" lang-zh-hk="必遊景點：" lang-zh-cn="必游景点：">必遊景點：</span></strong><br>
+                    • <strong><span lang-en="Piazza Grande Square" lang-zh-hk="Piazza Grande 大廣場" lang-zh-cn="Piazza Grande 大广场">Piazza Grande 大廣場</span></strong> - <span lang-en="City center with panoramic views of Val d'Orcia" lang-zh-hk="城市中心，俯瞰 Val d'Orcia" lang-zh-cn="城市中心，俯瞰 Val d'Orcia">城市中心，俯瞰 Val d'Orcia</span><br>
+                    • <strong><span lang-en="Palazzo Comunale" lang-zh-hk="Palazzo Comunale 市政廳" lang-zh-cn="Palazzo Comunale 市政厅">Palazzo Comunale 市政廳</span></strong> - <span lang-en="Can climb tower" lang-zh-hk="可登塔眺望" lang-zh-cn="可登塔眺望">可登塔眺望</span><br>
+                    • <strong><span lang-en="San Biagio Church" lang-zh-hk="San Biagio 教堂" lang-zh-cn="San Biagio 教堂">San Biagio 教堂</span></strong> - <span lang-en="Renaissance masterpiece" lang-zh-hk="文藝復興傑作" lang-zh-cn="文艺复兴杰作">文藝復興傑作</span><br>
+                    • <strong><span lang-en="Vino Nobile Wine Tasting" lang-zh-hk="Vino Nobile 紅酒試酒舖" lang-zh-cn="Vino Nobile 红酒试酒铺">Vino Nobile 紅酒試酒舖</span></strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Drive time: ~5-10 min | Park: Parcheggio del Mercato (Free, 5 min walk)" lang-zh-hk="行車時間：約 5-10 分鐘 | 泊車：Parcheggio del Mercato (免費，步行 5 分鐘)" lang-zh-cn="行车时间：约 5-10 分钟 | 泊车：Parcheggio del Mercato (免费，步行 5 分钟)">行車時間：約 5-10 分鐘 | 泊車：Parcheggio del Mercato (免費，步行 5 分鐘)</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/LalmaCafe-Montepulciano" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Café" lang-zh-hk="咖啡廳" lang-zh-cn="咖啡厅">咖啡廳</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 葡萄酒莊 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">12:30</div>
+                    <div class="activity-title">🍷 <span lang-en="Tenuta Le Velette Winery & Wine Tasting" lang-zh-hk="Tenuta Le Velette 酒莊品酒" lang-zh-cn="Tenuta Le Velette 酒庄品酒">Tenuta Le Velette 酒莊品酒</span></div>
+                    <span class="category-badge badge-attraction"><span lang-en="Attraction" lang-zh-hk="景點" lang-zh-cn="景点">景點</span></span>
+                </div>
+                <div class="attraction-image">🍷</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Località Le Velette, Orvieto</strong><br>
+                    <i class="fas fa-phone"></i> +39 0763 390 214
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>⚠️ <span lang-en="Driver must not drink alcohol!" lang-zh-hk="司機勿飲酒！" lang-zh-cn="司机勿饮酒！">司機勿飲酒！</span></strong> <span lang-en="Designate non-driver for wine tasting" lang-zh-hk="請指定非駕駛人士品酒" lang-zh-cn="请指定非驾驶人士品酒">請指定非駕駛人士品酒</span>
+                </div>
+                <div class="restaurant-info">
+                    <div class="restaurant-name">📌 <span lang-en="Reservation 12:30 | Family-run since 1870s" lang-zh-hk="已預約 12:30 | 家族經營自 1870 年代" lang-zh-cn="已预约 12:30 | 家族经营自 1870 年代">已預約 12:30 | 家族經營自 1870 年代</span></div>
+                    <strong style="color: #2E7D32;">🌟 <span lang-en="Wine Tasting Experience:" lang-zh-hk="酒莊體驗：" lang-zh-cn="酒庄体验：">酒莊體驗：</span></strong>
+                    <div class="menu-item">
+                        • <span lang-en="Visit tufa stone underground cellars" lang-zh-hk="參觀凝灰岩地下酒窖" lang-zh-cn="参观凝灰岩地下酒窖">參觀凝灰岩地下酒窖</span><br>
+                        • <span lang-en="Taste 5 wines (3 white, 2 red) & local food platter" lang-zh-hk="品嚐 5 款葡萄酒（3白2紅）& 當地美食拼盤" lang-zh-cn="品尝 5 款葡萄酒（3白2红）& 当地美食拼盘">品嚐 5 款葡萄酒（3白2紅）& 當地美食拼盤</span><br>
+                        • <span lang-en="Recommended:" lang-zh-hk="推介：" lang-zh-cn="推介：">推介：</span> <span class="tag tag-must-try">Orvieto Classico "Lunato"</span><br>
+                        • <span lang-en="Price: ~€30/person" lang-zh-hk="費用：約 €30/人" lang-zh-cn="费用：约 €30/人">費用：約 €30/人</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/Tenuta-LeVelette-Orvieto" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                    <a href="tel:+390763390214" class="btn btn-phone">
+                        <i class="fas fa-phone"></i> <span lang-en="Reserve" lang-zh-hk="預約" lang-zh-cn="预约">預約</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 天空之城 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">15:00</div>
+                    <div class="activity-title">🏰 <span lang-en="Civita di Bagnoregio (Sky City)" lang-zh-hk="Civita di Bagnoregio（天空之城）" lang-zh-cn="Civita di Bagnoregio（天空之城）">Civita di Bagnoregio（天空之城）</span></div>
+                    <span class="category-badge badge-attraction"><span lang-en="Attraction" lang-zh-hk="景點" lang-zh-cn="景点">景點</span></span>
+                </div>
+                <div class="attraction-image">🏰</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Civita di Bagnoregio, VT</strong><br>
+                    📸 <span lang-en="Inspired Miyazaki's Castle in the Sky" lang-zh-hk="宮崎駿《天空之城》靈感地點" lang-zh-cn="宫崎骏《天空之城》灵感地点">宮崎駿《天空之城》靈感地點</span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong><span lang-en="Attraction Details:" lang-zh-hk="景點介紹：" lang-zh-cn="景点介绍：">景點介紹：</span></strong><br>
+                    <span lang-en="Medieval isolated town built on tufa rock - 'Dying City'" lang-zh-hk="建於凝灰岩上的中世紀孤城，「垂死之城」" lang-zh-cn="建于凝灰岩上的中世纪孤城，「垂死之城」">建於凝灰岩上的中世紀孤城，「垂死之城」</span><br>
+                    • <strong><span lang-en="San Donato Church" lang-zh-hk="San Donato 教堂" lang-zh-cn="San Donato 教堂">San Donato 教堂</span></strong><br>
+                    • <strong><span lang-en="Square café overlooking valley" lang-zh-hk="廣場咖啡館眺望山谷" lang-zh-cn="广场咖啡馆眺望山谷">廣場咖啡館眺望山谷</span></strong>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        💡 <strong><span lang-en="Tips:" lang-zh-hk="貼士：" lang-zh-cn="贴士：">貼士：</span></strong><br>
+                        • <span lang-en="Entry fee: €5/person" lang-zh-hk="入城費：€5/人" lang-zh-cn="入城费：€5/人">入城費：€5/人</span><br>
+                        • <span lang-en="Parking: €1.50/hour (suggest 3 hours)" lang-zh-hk="泊車：€1.50/小時，建議泊 3 小時" lang-zh-cn="泊车：€1.50/小时，建议泊 3 小时">泊車：€1.50/小時，建議泊 3 小時</span><br>
+                        • <span lang-en="15 min walk across bridge to enter town" lang-zh-hk="步行 15 分鐘過橋入城" lang-zh-cn="步行 15 分钟过桥入城">步行 15 分鐘過橋入城</span><br>
+                        • <span lang-en="Uphill path - wear comfortable shoes 👟" lang-zh-hk="上坡路，著舒適鞋 👟" lang-zh-cn="上坡路，着舒适鞋 👟">上坡路，著舒適鞋 👟</span><br>
+                        • <span lang-en="Drive time: ~30 min" lang-zh-hk="行車時間：約 30 分鐘" lang-zh-cn="行车时间：约 30 分钟">行車時間：約 30 分鐘</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/Civita-diBagnoregio" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Orvieto 散步 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">17:30</div>
+                    <div class="activity-title">🚶 <span lang-en="Orvieto Town Walk" lang-zh-hk="Orvieto 小鎮散步" lang-zh-cn="Orvieto 小镇散步">Orvieto 小鎮散步</span></div>
+                    <span class="category-badge badge-attraction"><span lang-en="Attraction" lang-zh-hk="景點" lang-zh-cn="景点">景點</span></span>
+                </div>
+                <div class="attraction-image">⛪</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Corso Cavour / Piazza del Popolo</strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong><span lang-en="Must-See Attractions:" lang-zh-hk="必遊景點：" lang-zh-cn="必游景点：">必遊景點：</span></strong><br>
+                    • <strong><span lang-en="Orvieto Cathedral" lang-zh-hk="Orvieto 大教堂" lang-zh-cn="Orvieto 大教堂">Orvieto 大教堂</span></strong> - <span lang-en="Gothic gold-plated facade" lang-zh-hk="哥德式鑲金立面" lang-zh-cn="哥德式镶金立面">哥德式鑲金立面</span><br>
+                    • <strong><span lang-en="Torre del Moro Clock Tower" lang-zh-hk="Torre del Moro 登塔全景" lang-zh-cn="Torre del Moro 登塔全景">Torre del Moro 登塔全景</span></strong><br>
+                    • <strong><span lang-en="Town edge overlook at sunset" lang-zh-hk="黃昏鎮邊眺望台看日落" lang-zh-cn="黄昏镇边眺望台看日落">黃昏鎮邊眺望台看日落</span></strong>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        🅿️ <strong><span lang-en="Parking:" lang-zh-hk="泊車：" lang-zh-cn="泊车：">泊車：</span></strong>Parcheggio Campo della Fiera €1.50/hour<br>
+                        🚡 <strong><span lang-en="Elevator:" lang-zh-hk="升降機：" lang-zh-cn="升降机：">升降機：</span></strong>7:00am-2:00am <span lang-en="Free" lang-zh-hk="免費" lang-zh-cn="免费">免費</span><br>
+                        🪜 <strong><span lang-en="Escalators:" lang-zh-hk="扶手電梯至" lang-zh-cn="扶手电梯至">扶手電梯至</span></strong>21:00
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/Orvieto-centro" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 晚餐 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">19:30</div>
+                    <div class="activity-title">🍽️ <span lang-en="Dinner: Seven Restaurant Cafè" lang-zh-hk="晚餐：Seven Restaurant Cafè" lang-zh-cn="晚餐：Seven Restaurant Cafè">晚餐：Seven Restaurant Cafè</span></div>
+                    <span class="category-badge badge-food"><span lang-en="Food" lang-zh-hk="美食" lang-zh-cn="美食">美食</span></span>
+                </div>
+                <div class="attraction-image">🍽️</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Via Sandro Pertini 28, Monteleone d'Orvieto</strong>
+                </div>
+                <div class="restaurant-info">
+                    <div class="restaurant-name">📌 <span lang-en="Reservation 19:30 | Famous for truffle dishes" lang-zh-hk="已訂位 19:30 | 以松露菜餚聞名" lang-zh-cn="已订位 19:30 | 以松露菜肴闻名">已訂位 19:30 | 以松露菜餚聞名</span></div>
+                    <strong style="color: #C41E3A;">🌟 <span lang-en="Must-Try Menu:" lang-zh-hk="必點菜單：" lang-zh-cn="必点菜单：">必點菜單：</span></strong>
+                    <div class="menu-item">
+                        • <span class="tag tag-must-try">Tagliolini with White Truffles</span> <span class="tag tag-signature"><span lang-en="White truffle fine noodles - Must try!" lang-zh-hk="白松露細麵 - 必點" lang-zh-cn="白松露细面 - 必点">白松露細麵 - 必點</span></span>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Drive time: ~40 min | Return to hotel: ~45 min" lang-zh-hk="行車時間：約 40 分鐘 | 返回酒店：約 45 分鐘" lang-zh-cn="行车时间：约 40 分钟 | 返回酒店：约 45 分钟">行車時間：約 40 分鐘 | 返回酒店：約 45 分鐘</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/9PQL8byZWDTdojf7A" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 返回酒店 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">21:00</div>
+                    <div class="activity-title">🚗 <span lang-en="Return to Hotel" lang-zh-hk="返回 Hotel Panoramic" lang-zh-cn="返回 Hotel Panoramic">返回 Hotel Panoramic</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>⚠️ <span lang-en="Many trucks on night roads - keep distance" lang-zh-hk="夜路貨車多，保持車距" lang-zh-cn="夜路货车多，保持车距">夜路貨車多，保持車距</span></strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Route: Orvieto → A1 (Firenze direction) → Montepulciano" lang-zh-hk="路線：Orvieto → A1 (Firenze 方向) → Montepulciano" lang-zh-cn="路线：Orvieto → A1 (Firenze 方向) → Montepulciano">路線：Orvieto → A1 (Firenze 方向) → Montepulciano</span><br>
+                    <span lang-en="Distance: ~45km | Time: 45 min" lang-zh-hk="距離：約 45km | 時間：45 分鐘" lang-zh-cn="距离：约 45km | 时间：45 分钟">距離：約 45km | 時間：45 分鐘</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DAY 3 ===== -->
+        <div id="day3" class="tab-content">
+            <div class="day-header">
+                <h2>📅 Day 3 - <span lang-en="Oct 11 (Friday)" lang-zh-hk="10月11日 (週五)" lang-zh-cn="10月11日 (周五)">10月11日 (週五)</span></h2>
+                <p>🚗 <span lang-en="Pienza → Val d'Orcia → Saturnia → San Quirico | Most beautiful Tuscan route" lang-zh-hk="Pienza → Val d'Orcia → Saturnia → San Quirico | 托斯卡納最美路線" lang-zh-cn="Pienza → Val d'Orcia → Saturnia → San Quirico | 托斯卡纳最美路线">Pienza → Val d'Orcia → Saturnia → San Quirico | 托斯卡納最美路線</span></p>
+            </div>
+
+            <!-- 天氣 -->
+            <div class="weather-card">
+                <div class="weather-info">
+                    <h3><span lang-en="Pienza / Saturnia - Oct 11" lang-zh-hk="Pienza / Saturnia - 10月11日" lang-zh-cn="Pienza / Saturnia - 10月11日">Pienza / Saturnia - 10月11日</span></h3>
+                    <div class="weather-temp">20°C</div>
+                    <div class="weather-desc">☀️ <span lang-en="Clear • Humidity 55%" lang-zh-hk="晴朗 • 濕度 55%" lang-zh-cn="晴朗 • 湿度 55%">晴朗 • 濕度 55%</span></div>
+                </div>
+                <div class="weather-icon">☀️</div>
+            </div>
+
+            <!-- 前往Pienza -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">11:00</div>
+                    <div class="activity-title">🚗 <span lang-en="Drive to Pienza" lang-zh-hk="前往 Pienza" lang-zh-cn="前往 Pienza">前往 Pienza</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Route: Hotel → SP146 → Pienza" lang-zh-hk="路線：Hotel Panoramic → SP146 → Pienza" lang-zh-cn="路线：Hotel Panoramic → SP146 → Pienza">路線：Hotel Panoramic → SP146 → Pienza</span><br>
+                    <span lang-en="Distance: ~15km | Time: 20-25 min" lang-zh-hk="距離：約 15km | 時間：20-25 分鐘" lang-zh-cn="距离：约 15km | 时间：20-25 分钟">距離：約 15km | 時間：20-25 分鐘</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/SP146-Pienza" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pienza 散步 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">11:30</div>
+                    <div class="activity-title">🍳 <span lang-en="Pienza Brunch + Town Tour" lang-zh-hk="Pienza 早午餐 + 遊覽" lang-zh-cn="Pienza 早午餐 + 游览">Pienza 早午餐 + 遊覽</span></div>
+                    <span class="category-badge badge-food"><span lang-en="Food" lang-zh-hk="美食" lang-zh-cn="美食">美食</span></span>
+                </div>
+                <div class="attraction-image">🏛️</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Pienza Centro Storico</strong><br>
+                    <span lang-en="UNESCO World Heritage Site - Renaissance Ideal City" lang-zh-hk="UNESCO 世界遺產「文藝復興理想城市」" lang-zh-cn="UNESCO 世界遗产「文艺复兴理想城市」">UNESCO 世界遺產「文藝復興理想城市」</span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong><span lang-en="Must-See Attractions:" lang-zh-hk="必遊景點：" lang-zh-cn="必游景点：">必遊景點：</span></strong><br>
+                    • <strong><span lang-en="Piazza Pio II Square" lang-zh-hk="Piazza Pio II 廣場" lang-zh-cn="Piazza Pio II 广场">Piazza Pio II 廣場</span></strong><br>
+                    • <strong><span lang-en="Via dell'Amore (Love Street)" lang-zh-hk="Via dell'Amore 愛情街" lang-zh-cn="Via dell'Amore 爱情街">Via dell'Amore 愛情街</span></strong> / <strong><span lang-en="Via del Bacio (Kiss Street)" lang-zh-hk="Via del Bacio 接吻街" lang-zh-cn="Via del Bacio 接吻街">Via del Bacio 接吻街</span></strong><br>
+                    • <strong><span lang-en="Town wall path with Val d'Orcia panorama" lang-zh-hk="鎮外圍牆邊步道眺望 Val d'Orcia" lang-zh-cn="镇外围墙边步道眺望 Val d'Orcia">鎮外圍牆邊步道眺望 Val d'Orcia</span></strong>
+                </div>
+                <div class="restaurant-info">
+                    <div class="restaurant-name">🧀 <span lang-en="Must-Try: Pecorino di Pienza Cheese" lang-zh-hk="必試：Pecorino di Pienza 羊奶芝士" lang-zh-cn="必试：Pecorino di Pienza 羊奶芝士">必試：Pecorino di Pienza 羊奶芝士</span></div>
+                    <div class="menu-item">
+                        <span lang-en="Many cheese shops offer free tastings | Great souvenir" lang-zh-hk="鎮上多間芝士舖可免費試食 | 購買伴手禮佳選" lang-zh-cn="镇上多间芝士铺可免费试食 | 购买伴手礼佳选">鎮上多間芝士舖可免費試食 | 購買伴手禮佳選</span>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Parking: Parcheggio Pienza (Via Mario Mencatelli 40) - Free, 5 min walk" lang-zh-hk="泊車：Parcheggio Pienza (Via Mario Mencatelli 40) 免費，步行 5 分鐘" lang-zh-cn="泊车：Parcheggio Pienza (Via Mario Mencatelli 40) 免费，步行 5 分钟">泊車：Parcheggio Pienza (Via Mario Mencatelli 40) 免費，步行 5 分鐘</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/Pienza-Centro" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Val d'Orcia 自駕 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">14:00</div>
+                    <div class="activity-title">🚗 <span lang-en="Drive through Val d'Orcia" lang-zh-hk="自駕穿越 Val d'Orcia" lang-zh-cn="自驾穿越 Val d'Orcia">自駕穿越 Val d'Orcia</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="attraction-image">🌄</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong><span lang-en="One of Tuscany's most beautiful scenic drives" lang-zh-hk="最美托斯卡納自駕路線之一" lang-zh-cn="最美托斯卡纳自驾路线之一">最美托斯卡納自駕路線之一</span></strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>📸 <span lang-en="Photo Stops Along the Way:" lang-zh-hk="沿途風景與停車點：" lang-zh-cn="沿途风景与停车点：">沿途風景與停車點：</span></strong><br>
+                    • <strong><span lang-en="Cypress Tree-lined Avenue" lang-zh-hk="柏樹大道" lang-zh-cn="柏树大道">柏樹大道</span></strong> - <span lang-en="Classic Tuscan landscape" lang-zh-hk="經典托斯卡納風景" lang-zh-cn="经典托斯卡纳风景">經典托斯卡納風景</span><br>
+                    • <strong><span lang-en="Cappella di Vitaleta" lang-zh-hk="Cappella di Vitaleta 小教堂" lang-zh-cn="Cappella di Vitaleta 小教堂">Cappella di Vitaleta 小教堂</span></strong> - <span lang-en="Can stop for photos near Pienza on SP146" lang-zh-hk="SP146 近 Pienza 段，可停車拍照" lang-zh-cn="SP146 近 Pienza 段，可停车拍照">SP146 近 Pienza 段，可停車拍照</span><br>
+                    • <strong><span lang-en="Montalcino with distant view" lang-zh-hk="Montalcino 遠眺" lang-zh-cn="Montalcino 远眺">Montalcino 遠眺</span></strong> - <span lang-en="Ancient town on hillside" lang-zh-hk="山丘上的古鎮遠景" lang-zh-cn="山丘上的古镇远景">山丘上的古鎮遠景</span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Route: Pienza → SP146 → SP55 → SR2 → SP10 → Saturnia" lang-zh-hk="路線：Pienza → SP146 → SP55 → SR2 → SP10 → Saturnia" lang-zh-cn="路线：Pienza → SP146 → SP55 → SR2 → SP10 → Saturnia">路線：Pienza → SP146 → SP55 → SR2 → SP10 → Saturnia</span><br>
+                    <span lang-en="Distance: ~60km | Time: 1 hour 20 min" lang-zh-hk="距離：約 60km | 時間：1 小時 20 分" lang-zh-cn="距离：约 60km | 时间：1 小时 20 分">距離：約 60km | 時間：1 小時 20 分</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/Val-dOrcia-scenic" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 天然溫泉 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">15:30</div>
+                    <div class="activity-title">♨️ <span lang-en="Terme di Saturnia Natural Hot Springs" lang-zh-hk="Terme di Saturnia 天然溫泉" lang-zh-cn="Terme di Saturnia 天然温泉">Terme di Saturnia 天然溫泉</span></div>
+                    <span class="category-badge badge-attraction"><span lang-en="Attraction" lang-zh-hk="景點" lang-zh-cn="景点">景點</span></span>
+                </div>
+                <div class="attraction-image">💧</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Cascate del Mulino</strong><br>
+                    Località Molino del Bagno 9/a, Saturnia
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>♨️ <span lang-en="Hot Spring Details:" lang-zh-hk="溫泉詳情：" lang-zh-cn="温泉详情：">溫泉詳情：</span></strong><br>
+                    • <strong><span lang-en="Free natural thermal waterfall" lang-zh-hk="免費天然溫泉瀑布" lang-zh-cn="免费天然温泉瀑布">免費天然溫泉瀑布</span></strong> - <span lang-en="Open 24 hours" lang-zh-hk="24 小時開放" lang-zh-cn="24 小时开放">24 小時開放</span><br>
+                    • <strong><span lang-en="Water temperature: ~37.5°C, contains sulfur" lang-zh-hk="水溫：約 37.5°C，含硫磺" lang-zh-cn="水温：约 37.5°C，含硫磺">水溫：約 37.5°C，含硫磺</span></strong><br>
+                    • <strong><span lang-en="Dreamy white travertine pools" lang-zh-hk="米白色梯田式水池，夢幻般" lang-zh-cn="米白色梯田式水池，梦幻般">米白色梯田式水池，夢幻般</span></strong>
+                </div>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>⚠️ <span lang-en="IMPORTANT TIPS:" lang-zh-hk="重要貼士：" lang-zh-cn="重要贴士：">重要貼士：</span></strong><br>
+                        • <span lang-en="Bring: Non-slip water shoes 👟, towel, waterproof bag, change of clothes" lang-zh-hk="必帶：防滑水鞋 👟、毛巾、防水袋、更換衣物" lang-zh-cn="必带：防滑水鞋 👟、毛巾、防水袋、更换衣物">必帶：防滑水鞋 👟、毛巾、防水袋、更換衣物</span><br>
+                        • <span lang-en="Keep valuables with you (theft common)" lang-zh-hk="貴重物品隨身帶（盜竊常見）" lang-zh-cn="贵重物品随身带（盗窃常见）">貴重物品隨身帶（盜竊常見）</span><br>
+                        • <span lang-en="Never leave visible items in car" lang-zh-hk="車內勿留可見物品" lang-zh-cn="车内勿留可见物品">車內勿留可見物品</span><br>
+                        • <span lang-en="Sulfur smell will stick to swimsuit (hard to wash)" lang-zh-hk="硫磺味會留在泳衣上（難以洗淨）" lang-zh-cn="硫磺味会留在泳衣上（难以洗净）">硫磺味會留在泳衣上（難以洗淨）</span>
+                    </div>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        🅿️ <strong><span lang-en="Parking:" lang-zh-hk="泊車：" lang-zh-cn="泊车：">泊車：</span></strong>Parcheggio Cascate del Mulino<br>
+                        • <span lang-en="Fee: €2.50/hour" lang-zh-hk="費用：€2.50/小時" lang-zh-cn="费用：€2.50/小时">費用：€2.50/小時</span><br>
+                        • <span lang-en="Before 8am / After 8pm: Free" lang-zh-hk="08:00 前 / 20:00 後免費" lang-zh-cn="08:00 前 / 20:00 后免费">08:00 前 / 20:00 後免費</span><br>
+                        • ⚠️ <span lang-en="NEVER park on street (heavy fines)" lang-zh-hk="切勿泊街邊（會罰款）" lang-zh-cn="切勿泊街边（会罚款）">切勿泊街邊（會罰款）</span>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/Cascate-delMulino-Saturnia" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 前往San Quirico -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">17:00</div>
+                    <div class="activity-title">🚗 <span lang-en="Drive to San Quirico d'Orcia" lang-zh-hk="前往 San Quirico d'Orcia" lang-zh-cn="前往 San Quirico d'Orcia">前往 San Quirico d'Orcia</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Route: Saturnia → SP10 → SR2 → San Quirico" lang-zh-hk="路線：Saturnia → SP10 → SR2 → San Quirico" lang-zh-cn="路线：Saturnia → SP10 → SR2 → San Quirico">路線：Saturnia → SP10 → SR2 → San Quirico</span><br>
+                    <span lang-en="Distance: ~55km | Time: 1 hour 15 min" lang-zh-hk="距離：約 55km | 時間：1 小時 15 分" lang-zh-cn="距离：约 55km | 时间：1 小时 15 分">距離：約 55km | 時間：1 小時 15 分</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/San-Quirico-dOrcia" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- San Quirico 散步 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">18:30</div>
+                    <div class="activity-title">🚶 <span lang-en="San Quirico Town Walk" lang-zh-hk="San Quirico 散步" lang-zh-cn="San Quirico 散步">San Quirico 散步</span></div>
+                    <span class="category-badge badge-attraction"><span lang-en="Attraction" lang-zh-hk="景點" lang-zh-cn="景点">景點</span></span>
+                </div>
+                <div class="attraction-image">🌳</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>San Quirico d'Orcia Centro</strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong><span lang-en="Must-See Attractions:" lang-zh-hk="必遊景點：" lang-zh-cn="必游景点：">必遊景點：</span></strong><br>
+                    • <strong><span lang-en="Horti Leonini Garden" lang-zh-hk="Horti Leonini 花園" lang-zh-cn="Horti Leonini 花园">Horti Leonini 花園</span></strong> - <span lang-en="16th-century Italian garden, FREE" lang-zh-hk="16 世紀意式花園，免費" lang-zh-cn="16 世纪意式花园，免费">16 世紀意式花園，免費</span><br>
+                    • <strong><span lang-en="Collegiata Church" lang-zh-hk="Collegiata 教堂" lang-zh-cn="Collegiata 教堂">Collegiata 教堂</span></strong> - <span lang-en="Romanesque façade" lang-zh-hk="羅馬式立面" lang-zh-cn="罗马式立面">羅馬式立面</span><br>
+                    • <strong><span lang-en="Town walls with Val d'Orcia views" lang-zh-hk="鎮外圍眺望 Val d'Orcia" lang-zh-cn="镇外围眺望 Val d'Orcia">鎮外圍眺望 Val d'Orcia</span></strong>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Free parking on street surrounding town (Via delle Mura area)" lang-zh-hk="泊車：鎮外圍街位免費（Via delle Mura 一帶）" lang-zh-cn="泊车：镇外围街位免费（Via delle Mura 一带）">泊車：鎮外圍街位免費（Via delle Mura 一帶）</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/HortiLeonini-San-Quirico" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 晚餐 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">19:30</div>
+                    <div class="activity-title">🍝 <span lang-en="Dinner: Trattoria al Vecchio Forno" lang-zh-hk="晚餐：Trattoria al Vecchio Forno" lang-zh-cn="晚餐：Trattoria al Vecchio Forno">晚餐：Trattoria al Vecchio Forno</span></div>
+                    <span class="category-badge badge-food"><span lang-en="Food" lang-zh-hk="美食" lang-zh-cn="美食">美食</span></span>
+                </div>
+                <div class="attraction-image">🍝</div>
+                <div class="location-info">
+                    <i class="fas fa-location-dot"></i>
+                    <strong>Via Poliziano 18, San Quirico</strong><br>
+                    <i class="fas fa-phone"></i> +39 0577 897380
+                </div>
+                <div class="restaurant-info">
+                    <div class="restaurant-name">📌 <span lang-en="Reservation 19:30 | Michelin Guide Recommended | Open until 10pm" lang-zh-hk="已訂位 19:30 | 米芝蓮指南推薦 | 營業至 22:00" lang-zh-cn="已订位 19:30 | 米其林指南推荐 | 营业至 22:00">已訂位 19:30 | 米芝蓮指南推薦 | 營業至 22:00</span></div>
+                    <strong style="color: #C41E3A;">🌟 <span lang-en="Must-Try Menu:" lang-zh-hk="必點菜單：" lang-zh-cn="必点菜单：">必點菜單：</span></strong>
+                    <div class="menu-item">
+                        • <span class="tag tag-must-try">Tagliatelle al cinghiale</span> <span lang-en="Wild boar wide noodles" lang-zh-hk="野豬肉寬麵" lang-zh-cn="野猪肉宽面">野豬肉寬麵</span><br>
+                        • <span class="tag tag-signature">Peposo di Guancia di Chianina al Brunello</span> <span class="tag tag-must-try"><span lang-en="Signature" lang-zh-hk="招牌菜" lang-zh-cn="招牌菜">招牌菜</span></span> - <span lang-en="Chianina beef cheek" lang-zh-hk="奇安那牛肉頰" lang-zh-cn="奇安那牛肉颊">奇安那牛肉頰</span><br>
+                        • <span class="tag tag-signature">Tagliolini 36 tuorli al tartufo</span> <span class="tag tag-must-try"><span lang-en="36 egg yolk noodles + truffle" lang-zh-hk="36 個蛋黃手工細麵 + 松露" lang-zh-cn="36 个蛋黄手工细面 + 松露">36 個蛋黃手工細麵 + 松露</span></span>
+                    </div>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Return to hotel: ~30-35 min" lang-zh-hk="返回 Hotel Panoramic：約 30-35 分鐘" lang-zh-cn="返回 Hotel Panoramic：约 30-35 分钟">返回 Hotel Panoramic：約 30-35 分鐘</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/VecchioForno-San-Quirico" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                    <a href="tel:+390577897380" class="btn btn-phone">
+                        <i class="fas fa-phone"></i> <span lang-en="Call" lang-zh-hk="電話" lang-zh-cn="电话">電話</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 返回酒店 -->
+            <div class="activity-card">
+                <div class="activity-header">
+                    <div class="activity-time">21:30</div>
+                    <div class="activity-title">🚗 <span lang-en="Return to Hotel Panoramic" lang-zh-hk="返回 Hotel Panoramic" lang-zh-cn="返回 Hotel Panoramic">返回 Hotel Panoramic</span></div>
+                    <span class="category-badge badge-drive"><span lang-en="Drive" lang-zh-hk="行車" lang-zh-cn="行车">行車</span></span>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Route: San Quirico → SP146 → Montepulciano" lang-zh-hk="路線：San Quirico → SP146 → Montepulciano" lang-zh-cn="路线：San Quirico → SP146 → Montepulciano">路線：San Quirico → SP146 → Montepulciano</span><br>
+                    <span lang-en="Distance: ~25km | Time: 30-35 min" lang-zh-hk="距離：約 25km | 時間：30-35 分鐘" lang-zh-cn="距离：约 25km | 时间：30-35 分钟">距離：約 25km | 時間：30-35 分鐘</span>
+                </div>
+                <div class="button-group">
+                    <a href="https://maps.app.goo.gl/SP146-Montepulciano" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 資訊頁 ===== -->
+        <div id="info" class="tab-content">
+            <!-- 住宿資訊 -->
+            <div class="hotel-card">
+                <h3><i class="fas fa-bed"></i> <span lang-en="Accommodation" lang-zh-hk="住宿資訊" lang-zh-cn="住宿资讯">住宿資訊</span></h3>
+                <div class="hotel-detail">
+                    <i class="fas fa-hotel"></i>
+                    <div>
+                        <strong>Hotel Panoramic</strong><br>
+                        Via San Bartolomeo 2, Montepulciano<br>
+                        <small>GPS: 43.076325, 11.791854</small>
+                    </div>
+                </div>
+                <div class="hotel-detail">
+                    <i class="fas fa-calendar"></i>
+                    <div>
+                        <strong><span lang-en="Check-in Dates:" lang-zh-hk="入住日期：" lang-zh-cn="入住日期：">入住日期：</span></strong><br>
+                        <span lang-en="Oct 9 - Oct 12 (3 nights)" lang-zh-hk="10月9日 - 10月12日（3 晚）" lang-zh-cn="10月9日 - 10月12日（3 晚）">10月9日 - 10月12日（3 晚）</span><br>
+                        <span lang-en="Check-in: 3pm onwards" lang-zh-hk="Check-in: 15:00 後" lang-zh-cn="Check-in: 15:00 后">Check-in: 15:00 後</span>
+                    </div>
+                </div>
+                <div class="hotel-detail">
+                    <i class="fas fa-star"></i>
+                    <div>
+                        <strong><span lang-en="Facilities:" lang-zh-hk="設施：" lang-zh-cn="设施：">設施：</span></strong><br>
+                        ✅ <span lang-en="Swimming pool" lang-zh-hk="游泳池" lang-zh-cn="游泳池">游泳池</span><br>
+                        ✅ <span lang-en="Tennis court" lang-zh-hk="網球場" lang-zh-cn="网球场">網球場</span><br>
+                        ✅ <span lang-en="Free breakfast" lang-zh-hk="免費早餐" lang-zh-cn="免费早餐">免費早餐</span><br>
+                        ✅ <span lang-en="Free parking" lang-zh-hk="免費泊車" lang-zh-cn="免费泊车">免費泊車</span>
+                    </div>
+                </div>
+                <div class="button-group" style="margin-top: 12px;">
+                    <a href="https://maps.app.goo.gl/hotelpanoramic-montepulciano" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 緊急聯絡 -->
+            <div class="emergency-box">
+                <h3><i class="fas fa-phone"></i> 🚨 <span lang-en="Emergency Contacts" lang-zh-hk="緊急聯絡電話" lang-zh-cn="紧急联系电话">緊急聯絡電話</span></h3>
+                <button class="emergency-btn" onclick="call('112')">
+                    <i class="fas fa-phone-volume"></i> 112 - <span lang-en="Police / Ambulance / Fire" lang-zh-hk="報警/急救/消防" lang-zh-cn="报警/急救/消防">報警/急救/消防</span>
+                </button>
+                <button class="emergency-btn" onclick="call('115')">
+                    <i class="fas fa-fire-extinguisher"></i> 115 - <span lang-en="Fire Department" lang-zh-hk="消防隊" lang-zh-cn="消防队">消防隊</span>
+                </button>
+                <button class="emergency-btn" onclick="call('118')">
+                    <i class="fas fa-ambulance"></i> 118 - <span lang-en="Ambulance" lang-zh-hk="救護車" lang-zh-cn="救护车">救護車</span>
+                </button>
+                <button class="emergency-btn" onclick="call('803116')">
+                    <i class="fas fa-car"></i> 803116 - ACI <span lang-en="Road Assistance" lang-zh-hk="道路救援" lang-zh-cn="道路救援">道路救援</span>
+                </button>
+                <button class="emergency-btn" onclick="call('+390276010691')">
+                    <i class="fas fa-globe"></i> +39 02 7601 0691 - <span lang-en="HK Consulate" lang-zh-hk="HK 領事館" lang-zh-cn="HK 领事馆">HK 領事館</span> 🇭🇰
+                </button>
+                <div class="alert alert-info" style="margin-top: 12px;">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Tip: No country code needed in Italy - dial directly" lang-zh-hk="提示：在意大利無需撥國家代碼，直接撥打即可" lang-zh-cn="提示：在意大利无需拨国家代码，直接拨打即可">提示：在意大利無需撥國家代碼，直接撥打即可</span>
+                </div>
+            </div>
+
+            <!-- 匯率計算機 -->
+            <div class="calculator">
+                <h3><i class="fas fa-calculator"></i> <span lang-en="Currency Converter" lang-zh-hk="匯率計算機" lang-zh-cn="汇率计算机">匯率計算機</span></h3>
+                
+                <div class="calc-group">
+                    <label><i class="fas fa-euro-sign"></i> <span lang-en="Amount (EUR)" lang-zh-hk="輸入金額 (EUR)" lang-zh-cn="输入金额 (EUR)">輸入金額 (EUR)</span></label>
+                    <input type="number" id="eurAmount" class="calc-input" placeholder="100" value="100" onchange="calculateExchange()">
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <div style="flex: 1;">
+                        <div class="calc-result">
+                            <i class="fas fa-hong-kong"></i> HKD<br>
+                            <span id="hkdResult">HK$825</span>
+                        </div>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="calc-result">
+                            <i class="fas fa-china"></i> RMB<br>
+                            <span id="rmbResult">¥612</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 12px; font-size: 11px;">
+                    <i class="fas fa-info-circle"></i>
+                    <span lang-en="Exchange rates (Oct 2024):" lang-zh-hk="匯率（更新于 2024年10月）：" lang-zh-cn="汇率（更新于 2024年10月）：">匯率（更新于 2024年10月）：</span><br>
+                    EUR/HKD ≈ 8.25 | EUR/RMB ≈ 6.12<br>
+                    💡 <span lang-en="Rates may vary" lang-zh-hk="提示：實際匯率可能有所變動" lang-zh-cn="提示：实际汇率可能有所变动">提示：實際匯率可能有所變動</span>
+                </div>
+            </div>
+
+            <!-- 記帳功能 -->
+            <div class="expense-tracker">
+                <h3><i class="fas fa-wallet"></i> <span lang-en="Expense Tracker" lang-zh-hk="旅行記帳" lang-zh-cn="旅行记账">旅行記帳</span></h3>
+                
+                <div class="expense-input">
+                    <input type="number" id="expAmount" class="calc-input" placeholder="€" step="0.01">
+                    <select id="expCategory">
+                        <option value="🍽️ Dining">🍽️ <span lang-en="Dining" lang-zh-hk="餐飲" lang-zh-cn="餐饮">餐飲</span></option>
+                        <option value="🅿️ Parking">🅿️ <span lang-en="Parking" lang-zh-hk="泊車" lang-zh-cn="泊车">泊車</span></option>
+                        <option value="⛽ Fuel">⛽ <span lang-en="Fuel" lang-zh-hk="油費" lang-zh-cn="油费">油費</span></option>
+                        <option value="🎫 Tickets">🎫 <span lang-en="Tickets" lang-zh-hk="門票" lang-zh-cn="门票">門票</span></option>
+                        <option value="🛍️ Shopping">🛍️ <span lang-en="Shopping" lang-zh-hk="購物" lang-zh-cn="购物">購物</span></option>
+                        <option value="💰 Other">💰 <span lang-en="Other" lang-zh-hk="其他" lang-zh-cn="其他">其他</span></option>
+                    </select>
+                    <button class="expense-btn" onclick="addExpense()">
+                        <i class="fas fa-plus"></i> <span lang-en="Add" lang-zh-hk="記帳" lang-zh-cn="记账">記帳</span>
+                    </button>
+                </div>
+
+                <ul class="expense-list" id="expenseList"></ul>
+                
+                <div class="expense-total">
+                    💶 <span lang-en="Total:" lang-zh-hk="總支出：" lang-zh-cn="总支出：">總支出：</span><span id="totalExpense">€0.00</span>
+                </div>
+
+                <button class="expense-btn" onclick="clearExpenses()" style="width: 100%; margin-top: 12px; background: #666;">
+                    <i class="fas fa-trash"></i> <span lang-en="Clear" lang-zh-hk="清除記錄" lang-zh-cn="清除记录">清除記錄</span>
+                </button>
+            </div>
+
+            <!-- 預算總結 -->
+            <div class="info-box">
+                <h3><i class="fas fa-chart-pie"></i> <span lang-en="Budget Overview" lang-zh-hk="預算概覽" lang-zh-cn="预算概览">預算概覽</span></h3>
+                <div class="info-row">
+                    <span class="info-label">🍽️ <span lang-en="Dining" lang-zh-hk="餐飲費用" lang-zh-cn="餐饮费用">餐飲費用</span></span>
+                    <span class="info-value">€500</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🚗 <span lang-en="Transportation" lang-zh-hk="交通運輸" lang-zh-cn="交通运输">交通運輸</span></span>
+                    <span class="info-value">€275</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🏨 <span lang-en="Accommodation" lang-zh-hk="住宿" lang-zh-cn="住宿">住宿</span></span>
+                    <span class="info-value">€450</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🎫 <span lang-en="Tickets/Shopping" lang-zh-hk="門票/購物" lang-zh-cn="门票/购物">門票/購物</span></span>
+                    <span class="info-value">€193</span>
+                </div>
+                <div class="info-row" style="border-bottom: 2px solid var(--primary); font-weight: bold; font-size: 14px;">
+                    <span class="info-label">💰 <span lang-en="Estimated Total" lang-zh-hk="估計總費用" lang-zh-cn="估计总费用">估計總費用</span></span>
+                    <span class="info-value">€1,418</span>
+                </div>
+            </div>
+
+            <!-- 重要提示 -->
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>🚨 <span lang-en="IMPORTANT: ZTL Restricted Traffic Zones" lang-zh-hk="重要：ZTL 限行區警告" lang-zh-cn="重要：ZTL 限行区警告">重要：ZTL 限行區警告</span></strong><br>
+                    <span lang-en="Florence, Montepulciano, and Orvieto have restricted zones." lang-zh-hk="佛羅倫斯、Montepulciano 和 Orvieto 的歷史中心都有 ZTL 限行。" lang-zh-cn="佛罗伦斯、Montepulciano 和 Orvieto 的历史中心都有 ZTL 限行。">佛羅倫斯、Montepulciano 和 Orvieto 的歷史中心都有 ZTL 限行。</span><br>
+                    <span lang-en="Fines: €80-€335" lang-zh-hk="誤入罰款 €80-€335。" lang-zh-cn="误入罚款 €80-€335。">誤入罰款 €80-€335。</span><br>
+                    <span lang-en="Park outside and walk or take taxi!" lang-zh-hk="建議選擇郊外泊車場，步行或搭的士進城。" lang-zh-cn="建议选择郊外泊车场，步行或打车进城。">建議選擇郊外泊車場，步行或搭的士進城。</span>
+                </div>
+            </div>
+
+            <!-- 實用提示 -->
+            <div class="info-box">
+                <h3><i class="fas fa-lightbulb"></i> <span lang-en="Practical Tips" lang-zh-hk="實用提示" lang-zh-cn="实用提示">實用提示</span></h3>
+                <div class="info-row">
+                    <span class="info-label">📱 <span lang-en="Network" lang-zh-hk="網絡" lang-zh-cn="网络">網絡</span></span>
+                    <span class="info-value"><span lang-en="Buy local SIM or eSIM" lang-zh-hk="建議購買當地 SIM 卡或 eSIM" lang-zh-cn="建议购买当地 SIM 卡或 eSIM">建議購買當地 SIM 卡或 eSIM</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">💳 <span lang-en="Payment" lang-zh-hk="支付" lang-zh-cn="支付">支付</span></span>
+                    <span class="info-value"><span lang-en="Visa/Mastercard widely accepted" lang-zh-hk="Visa/Mastercard 普遍接受" lang-zh-cn="Visa/Mastercard 普遍接受">Visa/Mastercard 普遍接受</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🚗 <span lang-en="Car Rental" lang-zh-hk="租車" lang-zh-cn="租车">租車</span></span>
+                    <span class="info-value"><span lang-en="Book ahead with GPS included" lang-zh-hk="建議提前預訂，配有 GPS" lang-zh-cn="建议提前预订，配有 GPS">建議提前預訂，配有 GPS</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">⏰ <span lang-en="Time Zone" lang-zh-hk="時差" lang-zh-cn="时差">時差</span></span>
+                    <span class="info-value"><span lang-en="Italy is 7 hours behind Hong Kong" lang-zh-hk="意大利 = 香港 -7 小時" lang-zh-cn="意大利 = 香港 -7 小时">意大利 = 香港 -7 小時</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🌡️ <span lang-en="Weather" lang-zh-hk="天氣" lang-zh-cn="天气">天氣</span></span>
+                    <span class="info-value"><span lang-en="October: 15-22°C, bring light jacket" lang-zh-hk="10月：15-22°C，帶薄夾克" lang-zh-cn="10月：15-22°C，带薄夹克">10月：15-22°C，帶薄夾克</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部導航 -->
+    <div class="bottom-nav">
+        <button class="nav-item" onclick="switchTab('flight')">
+            <i class="fas fa-plane"></i> <span lang-en="Flight" lang-zh-hk="航班" lang-zh-cn="航班">航班</span>
+        </button>
+        <button class="nav-item active" onclick="switchTab('day1')">
+            <i class="fas fa-calendar-day"></i> Day 1
+        </button>
+        <button class="nav-item" onclick="switchTab('day2')">
+            <i class="fas fa-calendar-day"></i> Day 2
+        </button>
+        <button class="nav-item" onclick="switchTab('day3')">
+            <i class="fas fa-calendar-day"></i> Day 3
+        </button>
+        <button class="nav-item" onclick="switchTab('info')">
+            <i class="fas fa-circle-info"></i> <span lang-en="Info" lang-zh-hk="資訊" lang-zh-cn="资讯">資訊</span>
+        </button>
+    </div>
+
+    <script>
+        // 多語言支持
+        let currentLanguage = 'zh-hk';
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            
+            // 更新所有多語言元素
+            document.querySelectorAll('[lang-en]').forEach(el => {
+                if (lang === 'en') {
+                    el.textContent = el.getAttribute('lang-en');
+                } else if (lang === 'zh-hk') {
+                    el.textContent = el.getAttribute('lang-zh-hk');
+                } else if (lang === 'zh-cn') {
+                    el.textContent = el.getAttribute('lang-zh-cn');
+                }
+            });
+
+            // 更新語言按鈕
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 保存語言設置
+            localStorage.setItem('language', lang);
+        }
+
+        // 標籤頁切換
+        function switchTab(tabId) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            const buttons = document.querySelectorAll('.tab-button, .nav-item');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll(`[onclick="switchTab('${tabId}')"]`).forEach(btn => {
+                btn.classList.add('active');
+            });
+            
+            window.scrollTo(0, 0);
+        }
+
+        // 緊急電話
+        function call(number) {
+            window.location.href = `tel:${number}`;
+        }
+
+        // 匯率計算
+        function calculateExchange() {
+            const eur = parseFloat(document.getElementById('eurAmount').value) || 0;
+            const hkd = (eur * 8.25).toFixed(2);
+            const rmb = (eur * 6.12).toFixed(2);
+            
+            document.getElementById('hkdResult').textContent = `HK$${hkd}`;
+            document.getElementById('rmbResult').textContent = `¥${rmb}`;
+        }
+
+        // 記帳功能
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        function addExpense() {
+            const amount = document.getElementById('expAmount').value;
+            const category = document.getElementById('expCategory').value;
+            
+            if (!amount || amount <= 0) {
+                alert(currentLanguage === 'en' ? 'Please enter valid amount' : currentLanguage === 'zh-cn' ? '请输入有效金额' : '請輸入有效金額');
+                return;
+            }
+            
+            expenses.push({
+                amount: parseFloat(amount),
+                category: category,
+                date: new Date().toLocaleDateString(currentLanguage === 'en' ? 'en-US' : currentLanguage === 'zh-cn' ? 'zh-CN' : 'zh-HK')
+            });
+            
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            updateExpenseList();
+            document.getElementById('expAmount').value = '';
+        }
+
+        function updateExpenseList() {
+            const list = document.getElementById('expenseList');
+            list.innerHTML = '';
+            
+            let total = 0;
+            expenses.forEach((exp, index) => {
+                total += exp.amount;
+                const item = document.createElement('li');
+                item.className = 'expense-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${exp.category}</strong><br>
+                        <small>${exp.date}</small>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="expense-amount">€${exp.amount.toFixed(2)}</span>
+                        <button onclick="deleteExpense(${index})" style="background: #ccc; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+            
+            document.getElementById('totalExpense').textContent = `€${total.toFixed(2)}`;
+        }
+
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            updateExpenseList();
+        }
+
+        function clearExpenses() {
+            if (confirm(currentLanguage === 'en' ? 'Clear all records?' : currentLanguage === 'zh-cn' ? '确定清除所有记录吗？' : '確定清除所有記錄嗎？')) {
+                expenses = [];
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                updateExpenseList();
+            }
+        }
+
+        // 初始化
+        window.addEventListener('load', () => {
+            const savedLang = localStorage.getItem('language') || 'zh-hk';
+            switchLanguage(savedLang);
+            updateExpenseList();
+            calculateExchange();
+        });
+    </script>
+</body>
+</html>
