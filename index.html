@@ -6,821 +6,220 @@
     <title>Italy Self-Drive Planner</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #8B4513;
-            --secondary: #D4A574;
-            --accent: #E8D5C4;
-            --danger: #C41E3A;
-            --success: #2E7D32;
-            --warning: #F57C00;
-            --info: #0288D1;
-            --dark: #2C3E50;
-            --light: #ECF0F1;
+            --primary: #8B4513; --secondary: #D4A574; --accent: #E8D5C4;
+            --danger: #C41E3A; --success: #2E7D32; --warning: #F57C00;
+            --info: #0288D1; --dark: #2C3E50; --light: #ECF0F1;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #f5f1e8 0%, #e8dcc8 100%);
-            color: var(--dark);
-            line-height: 1.6;
-            min-height: 100vh;
-            padding-bottom: 60px;
+            color: var(--dark); line-height: 1.6; min-height: 100vh; padding-bottom: 60px;
         }
-
-        /* ===== 語言切換按鈕 ===== */
         .language-switcher {
-            position: fixed;
-            top: 60px;
-            right: 12px;
-            z-index: 101;
-            display: flex;
-            gap: 4px;
-            background: white;
-            padding: 4px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: fixed; top: 60px; right: 12px; z-index: 101;
+            display: flex; gap: 4px; background: white; padding: 4px;
+            border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-
         .lang-btn {
-            padding: 6px 10px;
-            border: none;
-            background: var(--light);
-            color: var(--dark);
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.2s;
+            padding: 6px 10px; border: none; background: var(--light); color: var(--dark);
+            cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all 0.2s;
         }
-
-        .lang-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* ===== 頂部導航 ===== */
+        .lang-btn.active { background: var(--primary); color: white; }
         .header {
             background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            padding: 16px 12px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            color: white; padding: 16px 12px; position: sticky; top: 0; z-index: 100;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-
-        .header-content {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header h1 {
-            font-size: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-date {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        /* ===== 標籤頁導航 ===== */
+        .header-content { max-width: 800px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+        .header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .header-date { font-size: 12px; opacity: 0.9; }
         .tabs {
-            background: white;
-            border-bottom: 2px solid var(--secondary);
-            padding: 0;
-            display: flex;
-            gap: 0;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            position: sticky;
-            top: 60px;
-            z-index: 99;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: white; border-bottom: 2px solid var(--secondary); padding: 0;
+            display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
+            position: sticky; top: 60px; z-index: 99; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-
         .tab-button {
-            flex: 1;
-            min-width: 70px;
-            padding: 12px 8px;
-            border: none;
-            background: white;
-            color: var(--dark);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap;
+            flex: 1; min-width: 70px; padding: 12px 8px; border: none; background: white;
+            color: var(--dark); cursor: pointer; font-size: 13px; font-weight: 500;
+            transition: all 0.3s; border-bottom: 3px solid transparent; white-space: nowrap;
         }
-
-        .tab-button:hover {
-            background: var(--accent);
-        }
-
-        .tab-button.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-            background: var(--light);
-        }
-
-        /* ===== 內容區域 ===== */
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 16px;
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* ===== 日期標題 ===== */
+        .tab-button:hover { background: var(--accent); }
+        .tab-button.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--light); }
+        .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .day-header {
             background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-            color: white;
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 16px;
+            color: white; padding: 16px; border-radius: 12px; margin-bottom: 16px;
             box-shadow: 0 4px 12px rgba(139,69,19,0.2);
         }
-
-        .day-header h2 {
-            font-size: 18px;
-            margin-bottom: 4px;
-        }
-
-        .day-header p {
-            font-size: 13px;
-            opacity: 0.95;
-        }
-
-        /* ===== 天氣卡片 ===== */
+        .day-header h2 { font-size: 18px; margin-bottom: 4px; }
+        .day-header p { font-size: 13px; opacity: 0.95; }
         .weather-card {
             background: linear-gradient(135deg, #87CEEB 0%, #E0F6FF 100%);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-left: 4px solid #0288D1;
+            border-radius: 12px; padding: 16px; margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 4px solid #0288D1;
         }
-
-        .weather-info {
-            flex: 1;
-        }
-
-        .weather-info h3 {
-            font-size: 14px;
-            color: var(--dark);
-            margin-bottom: 4px;
-        }
-
-        .weather-temp {
-            font-size: 24px;
-            font-weight: bold;
-            color: #01579B;
-        }
-
-        .weather-desc {
-            font-size: 12px;
-            color: #0277BD;
-            margin-top: 4px;
-        }
-
-        .weather-icon {
-            font-size: 40px;
-            text-align: center;
-        }
-
-        /* ===== 行程卡片 ===== */
+        .weather-info { flex: 1; }
+        .weather-info h3 { font-size: 14px; color: var(--dark); margin-bottom: 4px; }
+        .weather-temp { font-size: 24px; font-weight: bold; color: #01579B; }
+        .weather-desc { font-size: 12px; color: #0277BD; margin-top: 4px; }
+        .weather-icon { font-size: 40px; text-align: center; }
         .activity-card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-left: 4px solid var(--primary);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: white; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+            border-left: 4px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: transform 0.2s, box-shadow 0.2s;
         }
-
-        .activity-card:active {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        .activity-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 12px;
-            gap: 8px;
-        }
-
+        .activity-card:active { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .activity-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; gap: 8px; }
         .activity-time {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--primary);
-            background: var(--accent);
-            padding: 4px 8px;
-            border-radius: 6px;
-            min-width: 65px;
-            text-align: center;
-            flex-shrink: 0;
+            font-size: 14px; font-weight: bold; color: var(--primary);
+            background: var(--accent); padding: 4px 8px; border-radius: 6px;
+            min-width: 65px; text-align: center; flex-shrink: 0;
         }
-
-        .activity-title {
-            flex: 1;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
+        .activity-title { flex: 1; font-size: 15px; font-weight: 600; color: var(--dark); }
         .category-badge {
-            font-size: 11px;
-            padding: 3px 6px;
-            border-radius: 4px;
-            font-weight: 600;
-            text-transform: uppercase;
-            flex-shrink: 0;
-            white-space: nowrap;
+            font-size: 11px; padding: 3px 6px; border-radius: 4px; font-weight: 600;
+            text-transform: uppercase; flex-shrink: 0; white-space: nowrap;
         }
-
-        .badge-drive {
-            background: #FFE0B2;
-            color: #E65100;
-        }
-
-        .badge-food {
-            background: #F8BBD0;
-            color: #880E4F;
-        }
-
-        .badge-attraction {
-            background: #C8E6C9;
-            color: #1B5E20;
-        }
-
-        .badge-hotel {
-            background: #B3E5FC;
-            color: #01579B;
-        }
-
-        /* ===== 景點圖片 ===== */
+        .badge-drive { background: #FFE0B2; color: #E65100; }
+        .badge-food { background: #F8BBD0; color: #880E4F; }
+        .badge-attraction { background: #C8E6C9; color: #1B5E20; }
+        .badge-hotel { background: #B3E5FC; color: #01579B; }
         .attraction-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #ddd 0%, #eee 100%);
-            border-radius: 8px;
-            margin: 12px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            overflow: hidden;
+            width: 100%; height: 200px; background: linear-gradient(135deg, #ddd 0%, #eee 100%);
+            border-radius: 8px; margin: 12px 0; display: flex; align-items: center;
+            justify-content: center; font-size: 48px; overflow: hidden;
         }
-
-        .attraction-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* ===== 位置信息 ===== */
+        .attraction-image img { width: 100%; height: 100%; object-fit: cover; }
         .location-info {
-            background: var(--light);
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-size: 13px;
-            color: var(--dark);
+            background: var(--light); padding: 12px; border-radius: 8px;
+            margin: 12px 0; font-size: 13px; color: var(--dark);
         }
-
-        .location-info strong {
-            color: var(--primary);
-        }
-
-        .location-info i {
-            color: var(--primary);
-            margin-right: 6px;
-        }
-
-        /* ===== 按鈕組 ===== */
-        .button-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-
+        .location-info strong { color: var(--primary); }
+        .location-info i { color: var(--primary); margin-right: 6px; }
+        .button-group { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
         .btn {
-            flex: 1;
-            min-width: 90px;
-            padding: 10px 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            text-decoration: none;
-            text-align: center;
+            flex: 1; min-width: 90px; padding: 10px 12px; border: none; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            text-decoration: none; text-align: center;
         }
-
-        .btn-nav {
-            background: var(--info);
-            color: white;
-        }
-
-        .btn-nav:active {
-            background: #0277BD;
-            transform: scale(0.98);
-        }
-
-        .btn-phone {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-phone:active {
-            background: #1B5E20;
-            transform: scale(0.98);
-        }
-
-        .btn-web {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .btn-web:active {
-            background: #A68564;
-            transform: scale(0.98);
-        }
-
-        /* ===== 餐廳信息 ===== */
+        .btn-nav { background: var(--info); color: white; }
+        .btn-nav:active { background: #0277BD; transform: scale(0.98); }
+        .btn-phone { background: var(--success); color: white; }
+        .btn-phone:active { background: #1B5E20; transform: scale(0.98); }
+        .btn-web { background: var(--secondary); color: white; }
+        .btn-web:active { background: #A68564; transform: scale(0.98); }
         .restaurant-info {
-            background: #FCE4EC;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            border-left: 4px solid var(--danger);
+            background: #FCE4EC; padding: 12px; border-radius: 8px;
+            margin: 12px 0; border-left: 4px solid var(--danger);
         }
-
-        .restaurant-name {
-            font-weight: 600;
-            color: var(--danger);
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .menu-item {
-            padding: 6px 0;
-            font-size: 12px;
-            line-height: 1.5;
-            color: var(--dark);
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 11px;
-            font-weight: 600;
-            margin: 0 2px;
-        }
-
-        .tag-must-try {
-            background: #FFE082;
-            color: #F57F17;
-        }
-
-        .tag-signature {
-            background: #A5D6A7;
-            color: #1B5E20;
-        }
-
-        .tag-booking {
-            background: #B3E5FC;
-            color: #01579B;
-        }
-
-        .tag-warning {
-            background: #FFCCBC;
-            color: #E65100;
-        }
-
-        /* ===== 重要提示 ===== */
+        .restaurant-name { font-weight: 600; color: var(--danger); margin-bottom: 8px; font-size: 14px; }
+        .menu-item { padding: 6px 0; font-size: 12px; line-height: 1.5; color: var(--dark); }
+        .tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: 600; margin: 0 2px; }
+        .tag-must-try { background: #FFE082; color: #F57F17; }
+        .tag-signature { background: #A5D6A7; color: #1B5E20; }
+        .tag-booking { background: #B3E5FC; color: #01579B; }
+        .tag-warning { background: #FFCCBC; color: #E65100; }
         .alert {
-            padding: 12px;
-            border-radius: 8px;
-            margin: 12px 0;
-            font-size: 12px;
-            border-left: 4px solid;
-            display: flex;
-            gap: 8px;
+            padding: 12px; border-radius: 8px; margin: 12px 0; font-size: 12px;
+            border-left: 4px solid; display: flex; gap: 8px;
         }
-
-        .alert-warning {
-            background: #FFF3E0;
-            border-left-color: var(--warning);
-            color: #E65100;
-        }
-
-        .alert-danger {
-            background: #FFEBEE;
-            border-left-color: var(--danger);
-            color: #C41E3A;
-        }
-
-        .alert-info {
-            background: #E3F2FD;
-            border-left-color: var(--info);
-            color: #0277BD;
-        }
-
-        /* ===== 信息塊 ===== */
+        .alert-warning { background: #FFF3E0; border-left-color: var(--warning); color: #E65100; }
+        .alert-danger { background: #FFEBEE; border-left-color: var(--danger); color: #C41E3A; }
+        .alert-info { background: #E3F2FD; border-left-color: var(--info); color: #0277BD; }
         .info-box {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid var(--accent);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px;
+            border: 1px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-
-        .info-box h3 {
-            color: var(--primary);
-            font-size: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--light);
-            font-size: 13px;
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            color: #666;
-            font-weight: 500;
-        }
-
-        .info-value {
-            color: var(--dark);
-            font-weight: 600;
-            text-align: right;
-            flex: 1;
-            margin-left: 12px;
-        }
-
-        /* ===== 住宿卡片 ===== */
+        .info-box h3 { color: var(--primary); font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--light); font-size: 13px; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #666; font-weight: 500; }
+        .info-value { color: var(--dark); font-weight: 600; text-align: right; flex: 1; margin-left: 12px; }
         .hotel-card {
             background: linear-gradient(135deg, #E1F5FE 0%, #B3E5FC 100%);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border-left: 4px solid var(--info);
-            box-shadow: 0 4px 12px rgba(2,136,209,0.15);
+            border-radius: 12px; padding: 16px; margin-bottom: 16px;
+            border-left: 4px solid var(--info); box-shadow: 0 4px 12px rgba(2,136,209,0.15);
         }
-
-        .hotel-card h3 {
-            color: var(--dark);
-            margin-bottom: 12px;
-            font-size: 16px;
-        }
-
-        .hotel-detail {
-            font-size: 13px;
-            margin: 8px 0;
-            display: flex;
-            align-items: start;
-            gap: 8px;
-        }
-
-        .hotel-detail i {
-            color: var(--info);
-            min-width: 20px;
-        }
-
-        /* ===== 航班卡片 ===== */
+        .hotel-card h3 { color: var(--dark); margin-bottom: 12px; font-size: 16px; }
+        .hotel-detail { font-size: 13px; margin: 8px 0; display: flex; align-items: start; gap: 8px; }
+        .hotel-detail i { color: var(--info); min-width: 20px; }
         .flight-card {
             background: linear-gradient(135deg, #E8EAF6 0%, #C5CAE9 100%);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border-left: 4px solid #3F51B5;
-            box-shadow: 0 4px 12px rgba(63,81,181,0.15);
+            border-radius: 12px; padding: 16px; margin-bottom: 16px;
+            border-left: 4px solid #3F51B5; box-shadow: 0 4px 12px rgba(63,81,181,0.15);
         }
-
-        /* ===== 緊急聯絡 ===== */
         .emergency-box {
             background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
+            border-radius: 12px; padding: 16px; margin-bottom: 16px;
             border-left: 4px solid var(--danger);
         }
-
-        .emergency-box h3 {
-            color: var(--danger);
-            margin-bottom: 12px;
-            font-size: 16px;
-        }
-
+        .emergency-box h3 { color: var(--danger); margin-bottom: 12px; font-size: 16px; }
         .emergency-btn {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
+            width: 100%; padding: 12px; margin: 8px 0; background: var(--danger);
+            color: white; border: none; border-radius: 8px; font-size: 14px;
+            font-weight: 600; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: all 0.2s;
         }
-
-        .emergency-btn:active {
-            background: #A00E2B;
-            transform: scale(0.98);
-        }
-
-        /* ===== 匯率計算機 ===== */
-        .calculator {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .calculator h3 {
-            color: var(--primary);
-            margin-bottom: 12px;
-            font-size: 16px;
-        }
-
-        .calc-group {
-            margin-bottom: 12px;
-        }
-
-        .calc-group label {
-            display: block;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .calc-input-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .calc-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .calc-result {
-            background: var(--light);
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600;
-            color: var(--primary);
-            margin-top: 8px;
-        }
-
-        /* ===== 記帳功能 ===== */
-        .expense-tracker {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .expense-tracker h3 {
-            color: var(--primary);
-            margin-bottom: 12px;
-            font-size: 16px;
-        }
-
-        .expense-input {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
-        .expense-input input,
-        .expense-input select {
-            flex: 1;
-            min-width: 100px;
-            padding: 10px;
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            font-size: 13px;
-        }
-
-        .expense-btn {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 10px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-
-        .expense-list {
-            list-style: none;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .expense-item {
-            background: var(--light);
-            padding: 10px;
-            border-radius: 8px;
-            margin: 8px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-        }
-
-        .expense-amount {
-            background: var(--warning);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: 600;
-        }
-
-        .expense-total {
-            background: var(--primary);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 12px;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        /* ===== 底部導航 ===== */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid var(--accent);
-            display: flex;
-            justify-content: space-around;
-            z-index: 100;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-        }
-
-        .nav-item {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-            background: white;
-            font-size: 11px;
-            font-weight: 500;
-            color: #999;
-            transition: all 0.2s;
-        }
-
-        .nav-item.active {
-            color: var(--primary);
-            background: var(--accent);
-        }
-
-        .nav-item i {
-            font-size: 18px;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        /* ===== 響應式設計 ===== */
+        .emergency-btn:active { background: #A00E2B; transform: scale(0.98); }
+        .calculator { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .calculator h3 { color: var(--primary); margin-bottom: 12px; font-size: 16px; }
+        .calc-group { margin-bottom: 12px; }
+        .calc-group label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 600; }
+        .calc-input-group { display: flex; gap: 8px; }
+        .calc-input { flex: 1; padding: 10px; border: 1px solid var(--accent); border-radius: 8px; font-size: 14px; }
+        .calc-result { background: var(--light); padding: 12px; border-radius: 8px; text-align: center; font-weight: 600; color: var(--primary); margin-top: 8px; }
+        .expense-tracker { background: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .expense-tracker h3 { color: var(--primary); margin-bottom: 12px; font-size: 16px; }
+        .expense-input { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .expense-input input, .expense-input select { flex: 1; min-width: 100px; padding: 10px; border: 1px solid var(--accent); border-radius: 8px; font-size: 13px; }
+        .expense-btn { background: var(--success); color: white; border: none; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; white-space: nowrap; }
+        .expense-list { list-style: none; max-height: 300px; overflow-y: auto; }
+        .expense-item { background: var(--light); padding: 10px; border-radius: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+        .expense-amount { background: var(--warning); color: white; padding: 4px 8px; border-radius: 6px; font-weight: 600; }
+        .expense-total { background: var(--primary); color: white; padding: 12px; border-radius: 8px; text-align: center; margin-top: 12px; font-weight: 600; font-size: 16px; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--accent); display: flex; justify-content: space-around; z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,0.1); }
+        .nav-item { flex: 1; padding: 8px; text-align: center; cursor: pointer; border: none; background: white; font-size: 11px; font-weight: 500; color: #999; transition: all 0.2s; }
+        .nav-item.active { color: var(--primary); background: var(--accent); }
+        .nav-item i { font-size: 18px; display: block; margin-bottom: 2px; }
         @media (max-width: 480px) {
-            .header h1 {
-                font-size: 18px;
-            }
-
-            .language-switcher {
-                top: 54px;
-                right: 8px;
-            }
-
-            .tab-button {
-                font-size: 11px;
-                padding: 10px 6px;
-                min-width: 60px;
-            }
-
-            .activity-card {
-                padding: 12px;
-            }
-
-            .btn {
-                font-size: 11px;
-                padding: 8px 10px;
-                min-width: 80px;
-            }
-
-            .attraction-image {
-                height: 150px;
-            }
+            .header h1 { font-size: 18px; }
+            .language-switcher { top: 54px; right: 8px; }
+            .tab-button { font-size: 11px; padding: 10px 6px; min-width: 60px; }
+            .activity-card { padding: 12px; }
+            .btn { font-size: 11px; padding: 8px 10px; min-width: 80px; }
+            .attraction-image { height: 150px; }
         }
     </style>
 </head>
 <body>
-    <!-- 頂部導航 -->
     <div class="header">
         <div class="header-content">
             <div>
                 <h1><i class="fas fa-map-location-dot"></i> <span lang-en="Italy Self-Drive" lang-zh-hk="意大利自駕" lang-zh-cn="意大利自驾">意大利自駕</span></h1>
-                <p class="header-date">🗓️ <span lang-en="Oct 9-11, 2026" lang-zh-hk="2026年10月9-11日" lang-zh-cn="2024年10月9-11日">2026年10月9-11日</span></p>
+                <p class="header-date">🗓️ <span lang-en="Oct 9-11, 2026" lang-zh-hk="2026年10月9-11日" lang-zh-cn="2026年10月9-11日">2026年10月9-11日</span></p>
             </div>
             <div style="text-align: right; font-size: 24px;">🇮🇹</div>
         </div>
     </div>
 
-    <!-- 語言切換 -->
     <div class="language-switcher">
         <button class="lang-btn active" onclick="switchLanguage('en')">EN</button>
         <button class="lang-btn" onclick="switchLanguage('zh-hk')">繁</button>
         <button class="lang-btn" onclick="switchLanguage('zh-cn')">簡</button>
     </div>
 
-    <!-- 標籤頁導航 -->
     <div class="tabs">
-        <button class="tab-button active" onclick="switchTab('day1')">
-            <i class="fas fa-calendar-day"></i> Day 1
-        </button>
-        <button class="tab-button" onclick="switchTab('day2')">
-            <i class="fas fa-calendar-day"></i> Day 2
-        </button>
-        <button class="tab-button" onclick="switchTab('day3')">
-            <i class="fas fa-calendar-day"></i> Day 3
-        </button>
-        <button class="tab-button" onclick="switchTab('info')">
-            <i class="fas fa-circle-info"></i> <span lang-en="Info" lang-zh-hk="資訊" lang-zh-cn="资讯">資訊</span>
-        </button>
+        <button class="tab-button active" onclick="switchTab('day1')"><i class="fas fa-calendar-day"></i> Day 1</button>
+        <button class="tab-button" onclick="switchTab('day2')"><i class="fas fa-calendar-day"></i> Day 2</button>
+        <button class="tab-button" onclick="switchTab('day3')"><i class="fas fa-calendar-day"></i> Day 3</button>
+        <button class="tab-button" onclick="switchTab('info')"><i class="fas fa-circle-info"></i> <span lang-en="Info" lang-zh-hk="資訊" lang-zh-cn="资讯">資訊</span></button>
     </div>
 
     <div class="container">
@@ -831,7 +230,6 @@
                 <p>🚗 <span lang-en="Milan → Florence → Montepulciano | ~300km / 3hr 15min" lang-zh-hk="米蘭 → 佛羅倫斯 → Montepulciano | 全程 ~300km / 3小時 15分" lang-zh-cn="米兰 → 佛罗伦斯 → Montepulciano | 全程 ~300km / 3小时 15分">米蘭 → 佛羅倫斯 → Montepulciano | 全程 ~300km / 3小時 15分</span></p>
             </div>
 
-            <!-- 天氣 -->
             <div class="weather-card">
                 <div class="weather-info">
                     <h3>Florence - <span lang-en="Oct 9" lang-zh-hk="10月9日" lang-zh-cn="10月9日">10月9日</span></h3>
@@ -861,7 +259,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/milan-hotel" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Via+Gottlieb+Wilhelm+Daimler+14,+Milano" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -894,7 +292,7 @@
                     <span lang-en="Park and walk 10-15 min to old city center" lang-zh-hk="泊好車後步行 10-15 分鐘入老城" lang-zh-cn="泊好车后步行 10-15 分钟入老城">泊好車後步行 10-15 分鐘入老城</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/ParcheggioSantAmbrogio-Firenze" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Parcheggio+Sant'Ambrogio,+Piazza+Ghiberti,+Firenze" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -924,7 +322,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/BraceriaAuditore-Firenze" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Braceria+Auditore,+Piazza+del+Grano+13R,+Firenze" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                     <a href="tel:+390552173200" class="btn btn-phone">
@@ -958,7 +356,7 @@
                     💡 <span lang-en="Book tickets online in advance to skip long queues (typically 1-2 hours)" lang-zh-hk="建議預先網上購票免排隊 (通常排隊 1-2 小時)" lang-zh-cn="建议预先网上购票免排队 (通常排队 1-2 小时)">建議預先網上購票免排隊 (通常排隊 1-2 小時)</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/UffiziGallery-Firenze" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Uffizi+Gallery,+Piazzale+degli+Uffizi+6,+Firenze" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                     <a href="https://www.uffizi.it" class="btn btn-web" target="_blank">
@@ -982,7 +380,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/A1-Valdichiana" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Montepulciano,+Italy" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1010,7 +408,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/hotelpanoramic-montepulciano" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Hotel+Panoramic,+Via+San+Bartolomeo+2,+Montepulciano" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1044,7 +442,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/LievitiMontepulciano" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Lieviti+Pizzeria,+Via+di+Cagnano+33,+Montepulciano" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                     <a href="tel:+390578440240" class="btn btn-phone">
@@ -1061,7 +459,6 @@
                 <p>🚗 <span lang-en="Montepulciano → Winery → Civita → Orvieto | ~120km" lang-zh-hk="Montepulciano → 酒莊 → Civita → Orvieto | 全程 ~120km" lang-zh-cn="Montepulciano → 酒庄 → Civita → Orvieto | 全程 ~120km">Montepulciano → 酒莊 → Civita → Orvieto | 全程 ~120km</span></p>
             </div>
 
-            <!-- 天氣 -->
             <div class="weather-card">
                 <div class="weather-info">
                     <h3><span lang-en="Montepulciano / Orvieto - Oct 10" lang-zh-hk="Montepulciano / Orvieto - 10月10日" lang-zh-cn="Montepulciano / Orvieto - 10月10日">Montepulciano / Orvieto - 10月10日</span></h3>
@@ -1097,7 +494,7 @@
                     <span lang-en="Drive time: ~5-10 min | Park: Parcheggio del Mercato (Free, 5 min walk)" lang-zh-hk="行車時間：約 5-10 分鐘 | 泊車：Parcheggio del Mercato (免費，步行 5 分鐘)" lang-zh-cn="行车时间：约 5-10 分钟 | 泊车：Parcheggio del Mercato (免费，步行 5 分钟)">行車時間：約 5-10 分鐘 | 泊車：Parcheggio del Mercato (免費，步行 5 分鐘)</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/LalmaCafe-Montepulciano" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Lalma+Cafe+%26+Tea+Room,+Montepulciano" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Café" lang-zh-hk="咖啡廳" lang-zh-cn="咖啡厅">咖啡廳</span>
                     </a>
                 </div>
@@ -1131,7 +528,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/Tenuta-LeVelette-Orvieto" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Tenuta+Le+Velette,+Localita+Le+Velette,+Orvieto" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                     <a href="tel:+390763390214" class="btn btn-phone">
@@ -1172,7 +569,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/Civita-diBagnoregio" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Civita+di+Bagnoregio,+VT" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1206,7 +603,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/Orvieto-centro" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Orvieto+Centro,+Italy" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1236,7 +633,7 @@
                     <span lang-en="Drive time: ~40 min | Return to hotel: ~45 min" lang-zh-hk="行車時間：約 40 分鐘 | 返回酒店：約 45 分鐘" lang-zh-cn="行车时间：约 40 分钟 | 返回酒店：约 45 分钟">行車時間：約 40 分鐘 | 返回酒店：約 45 分鐘</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/9PQL8byZWDTdojf7A" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Seven+Restaurant+Cafe,+Via+Sandro+Pertini+28,+Monteleone+d'Orvieto" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1258,6 +655,11 @@
                     <span lang-en="Route: Orvieto → A1 (Firenze direction) → Montepulciano" lang-zh-hk="路線：Orvieto → A1 (Firenze 方向) → Montepulciano" lang-zh-cn="路线：Orvieto → A1 (Firenze 方向) → Montepulciano">路線：Orvieto → A1 (Firenze 方向) → Montepulciano</span><br>
                     <span lang-en="Distance: ~45km | Time: 45 min" lang-zh-hk="距離：約 45km | 時間：45 分鐘" lang-zh-cn="距离：约 45km | 时间：45 分钟">距離：約 45km | 時間：45 分鐘</span>
                 </div>
+                <div class="button-group">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Hotel+Panoramic,+Via+San+Bartolomeo+2,+Montepulciano" class="btn btn-nav" target="_blank">
+                        <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -1268,7 +670,6 @@
                 <p>🚗 <span lang-en="Pienza → Val d'Orcia → Saturnia → San Quirico | Most beautiful Tuscan route" lang-zh-hk="Pienza → Val d'Orcia → Saturnia → San Quirico | 托斯卡納最美路線" lang-zh-cn="Pienza → Val d'Orcia → Saturnia → San Quirico | 托斯卡纳最美路线">Pienza → Val d'Orcia → Saturnia → San Quirico | 托斯卡納最美路線</span></p>
             </div>
 
-            <!-- 天氣 -->
             <div class="weather-card">
                 <div class="weather-info">
                     <h3><span lang-en="Pienza / Saturnia - Oct 11" lang-zh-hk="Pienza / Saturnia - 10月11日" lang-zh-cn="Pienza / Saturnia - 10月11日">Pienza / Saturnia - 10月11日</span></h3>
@@ -1291,7 +692,7 @@
                     <span lang-en="Distance: ~15km | Time: 20-25 min" lang-zh-hk="距離：約 15km | 時間：20-25 分鐘" lang-zh-cn="距离：约 15km | 时间：20-25 分钟">距離：約 15km | 時間：20-25 分鐘</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/SP146-Pienza" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Pienza,+Italy" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1328,7 +729,7 @@
                     <span lang-en="Parking: Parcheggio Pienza (Via Mario Mencatelli 40) - Free, 5 min walk" lang-zh-hk="泊車：Parcheggio Pienza (Via Mario Mencatelli 40) 免費，步行 5 分鐘" lang-zh-cn="泊车：Parcheggio Pienza (Via Mario Mencatelli 40) 免费，步行 5 分钟">泊車：Parcheggio Pienza (Via Mario Mencatelli 40) 免費，步行 5 分鐘</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/Pienza-Centro" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Pienza+Centro+Storico,+Italy" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1359,7 +760,7 @@
                     <span lang-en="Distance: ~60km | Time: 1 hour 20 min" lang-zh-hk="距離：約 60km | 時間：1 小時 20 分" lang-zh-cn="距离：约 60km | 时间：1 小时 20 分">距離：約 60km | 時間：1 小時 20 分</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/Val-dOrcia-scenic" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Val+d'Orcia,+Italy" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1405,7 +806,7 @@
                     </div>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/Cascate-delMulino-Saturnia" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Cascate+del+Mulino,+Saturnia" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1424,7 +825,7 @@
                     <span lang-en="Distance: ~55km | Time: 1 hour 15 min" lang-zh-hk="距離：約 55km | 時間：1 小時 15 分" lang-zh-cn="距离：约 55km | 时间：1 小时 15 分">距離：約 55km | 時間：1 小時 15 分</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/San-Quirico-dOrcia" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=San+Quirico+d'Orcia,+Italy" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1454,7 +855,7 @@
                     <span lang-en="Free parking on street surrounding town (Via delle Mura area)" lang-zh-hk="泊車：鎮外圍街位免費（Via delle Mura 一帶）" lang-zh-cn="泊车：镇外围街位免费（Via delle Mura 一带）">泊車：鎮外圍街位免費（Via delle Mura 一帶）</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/HortiLeonini-San-Quirico" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Horti+Leonini,+San+Quirico+d'Orcia" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1487,7 +888,7 @@
                     <span lang-en="Return to hotel: ~30-35 min" lang-zh-hk="返回 Hotel Panoramic：約 30-35 分鐘" lang-zh-cn="返回 Hotel Panoramic：约 30-35 分钟">返回 Hotel Panoramic：約 30-35 分鐘</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/VecchioForno-San-Quirico" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Trattoria+al+Vecchio+Forno,+Via+Poliziano+18,+San+Quirico+d'Orcia" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                     <a href="tel:+390577897380" class="btn btn-phone">
@@ -1509,7 +910,7 @@
                     <span lang-en="Distance: ~25km | Time: 30-35 min" lang-zh-hk="距離：約 25km | 時間：30-35 分鐘" lang-zh-cn="距离：约 25km | 时间：30-35 分钟">距離：約 25km | 時間：30-35 分鐘</span>
                 </div>
                 <div class="button-group">
-                    <a href="https://maps.app.goo.gl/SP146-Montepulciano" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Hotel+Panoramic,+Via+San+Bartolomeo+2,+Montepulciano" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1548,7 +949,7 @@
                     </div>
                 </div>
                 <div class="button-group" style="margin-top: 12px;">
-                    <a href="https://maps.app.goo.gl/hotelpanoramic-montepulciano" class="btn btn-nav" target="_blank">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=Hotel+Panoramic,+Via+San+Bartolomeo+2,+Montepulciano" class="btn btn-nav" target="_blank">
                         <i class="fas fa-map"></i> <span lang-en="Navigate" lang-zh-hk="導航" lang-zh-cn="导航">導航</span>
                     </a>
                 </div>
@@ -1720,14 +1121,12 @@
     </div>
 
     <script>
-        // 多語言支持
         let currentLanguage = 'zh-hk';
 
         function switchLanguage(lang) {
             currentLanguage = lang;
             document.documentElement.lang = lang;
             
-            // 更新所有多語言元素
             document.querySelectorAll('[lang-en]').forEach(el => {
                 if (lang === 'en') {
                     el.textContent = el.getAttribute('lang-en');
@@ -1738,15 +1137,12 @@
                 }
             });
 
-            // 更新語言按鈕
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // 保存語言設置
             localStorage.setItem('language', lang);
         }
 
-        // 標籤頁切換
         function switchTab(tabId) {
             const contents = document.querySelectorAll('.tab-content');
             contents.forEach(content => content.classList.remove('active'));
@@ -1763,12 +1159,10 @@
             window.scrollTo(0, 0);
         }
 
-        // 緊急電話
         function call(number) {
             window.location.href = `tel:${number}`;
         }
 
-        // 匯率計算
         function calculateExchange() {
             const eur = parseFloat(document.getElementById('eurAmount').value) || 0;
             const hkd = (eur * 8.25).toFixed(2);
@@ -1778,7 +1172,6 @@
             document.getElementById('rmbResult').textContent = `¥${rmb}`;
         }
 
-        // 記帳功能
         let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
 
         function addExpense() {
@@ -1842,7 +1235,6 @@
             }
         }
 
-        // 初始化
         window.addEventListener('load', () => {
             const savedLang = localStorage.getItem('language') || 'zh-hk';
             switchLanguage(savedLang);
